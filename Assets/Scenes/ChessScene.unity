@@ -1239,7 +1239,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &723467549
 Transform:
   m_ObjectHideFlags: 0
@@ -1248,7 +1248,7 @@ Transform:
   m_GameObject: {fileID: 723467548}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
   m_LocalPosition: {x: 0, y: 0, z: 0}
-  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_LocalScale: {x: 0.3942461, y: 0.3942461, z: 0.3942461}
   m_Children:
   - {fileID: 1000901116}
   - {fileID: 64924452}
@@ -1910,6 +1910,52 @@ Transform:
   m_PrefabParentObject: {fileID: 4507527947277470, guid: 484e214fc05fe436393fd7787991ebfe,
     type: 2}
   m_PrefabInternal: {fileID: 1563946425}
+--- !u!1 &1565134680
+GameObject:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  serializedVersion: 5
+  m_Component:
+  - component: {fileID: 1565134681}
+  - component: {fileID: 1565134682}
+  m_Layer: 0
+  m_Name: GAME_MANAGER
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1565134681
+Transform:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1565134680}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 8.586196, y: 5.0876913, z: 4.219328}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_Children: []
+  m_Father: {fileID: 0}
+  m_RootOrder: 3
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1565134682
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_PrefabParentObject: {fileID: 0}
+  m_PrefabInternal: {fileID: 0}
+  m_GameObject: {fileID: 1565134680}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 3a3b7fc45078b6f439701205b7a2bb8a, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  Pawn: {fileID: 1213357437349106, guid: cb6a8f6d20d524a85bf5d4d1c6ba3d93, type: 2}
+  Rook: {fileID: 1037745782791696, guid: ae91a18cadda2480e9478488d2142fde, type: 2}
+  Bishop: {fileID: 1916680518618882, guid: eec17d5f9090c4c949f55d97388bfec8, type: 2}
+  Knight: {fileID: 1830534316869998, guid: 396e9ff596f3340a3ba66f31bb9c83f8, type: 2}
+  King: {fileID: 1504342444523766, guid: de5f4888ca0e74c1ba4b9224759334f4, type: 2}
+  Queen: {fileID: 1996616484037168, guid: fd58da484cc87433689394934ae1baa1, type: 2}
 --- !u!1001 &1583269408
 Prefab:
   m_ObjectHideFlags: 0

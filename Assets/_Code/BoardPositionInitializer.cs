@@ -2,21 +2,27 @@
 using System.Collections.Generic;
 using UnityEngine;
 
+/// <summary>
+/// Class handles the initialization and creation of all tiles and pieces for the start of the board. 
+/// Class instanciates both tiles and pieces at the correct location, sets team and type data, then passes 
+/// any persistent data over to the PossiblePositionManager for later usage.
+/// </summary>
 public class BoardPositionInitializer : MonoBehaviour {
 
-    //
+    //Inspector Vars////
     public GameObject Pawn;
     public GameObject Rook;
     public GameObject Bishop;
     public GameObject Knight;
     public GameObject King;
     public GameObject Queen;
-    //
+    //Inspector Vars////
 
-    private const int BOARD_SIZE = 8;
-    private bool colourSwitch;
 
-    private PositionData[,] boardDataArray;
+    private const int BOARD_SIZE = 8;       //Size of board
+    private bool colourSwitch;              //Boolean for rotating colours of board tiles
+
+    private Tile[,] boardTileArray;         //Array of all tiles on board - sent to PossiblePositionManager for storage
 
     /// <summary>
     /// Called before first frame
@@ -24,29 +30,36 @@ public class BoardPositionInitializer : MonoBehaviour {
     private void Awake()
     {
         //Initialize the array of board positions
-        boardDataArray = new PositionData[BOARD_SIZE, BOARD_SIZE];
+        boardTileArray = new Tile[BOARD_SIZE, BOARD_SIZE];
 
-        //Create board Base
+        GameObject boardParent = new GameObject();
+
+        //Create board Base with pieces
         for (int x = 0; x < BOARD_SIZE; x++)
         {
             colourSwitch = !colourSwitch;
             for (int y = 0; y < BOARD_SIZE; y++)
             {
                 //Create the position object -> set name, position, and colour
-                GameObject point = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                point.name = x.ToString() + "/" + y.ToString();
-                point.transform.position = new Vector3(x, 0, y);
-                //point.transform.localScale = new Vector3(0.9f, 0.9f, 0.9f);
-                if (colourSwitch)
-                    point.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
-                colourSwitch = !colourSwitch;
+                GameObject tilePoint = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                tilePoint.name = x.ToString() + "/" + y.ToString();
+                tilePoint.transform.position = new Vector3(x, 0, y);
+                tilePoint.transform.parent = boardParent.transform;
 
-                //Now we have the position on the board, save it to an array for later access
-                boardDataArray[x, y] = new PositionData(new BoardLocation(point, x, y), getPieceToSpawn(x,y));
-                if (boardDataArray[x, y].currentUser != null)
-                    boardDataArray[x, y].currentUser.gameObject.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
+                //Give the tilePoint a Tile class for later usage
+                Tile t = tilePoint.AddComponent<Tile>();
+                t.initialize(new BoardLocation(tilePoint, x, y), getPieceToSpawn(x, y));
+                boardTileArray[x, y] = t;
+
+                //Set the correct colour for the tiles
+                if (colourSwitch)
+                    tilePoint.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
+                colourSwitch = !colourSwitch;
             }
         }
+
+        //Save persistent data over on the position manager
+        GetComponent<PossiblePositionManager>().setTileDataArray(boardTileArray);
     }
 
 
@@ -149,28 +162,6 @@ public class BoardPositionInitializer : MonoBehaviour {
 }
 
 
-
-
-/// <summary>
-/// Board Position data for each location on the board. Holds the BoardLocation Struct for position data
-/// and the current piece using this position.
-/// </summary>
-class PositionData
-{
-    internal BoardLocation location;
-    internal Piece currentUser;
-
-    /// <summary>
-    /// Constructor
-    /// </summary>
-    /// <param name="location">BoardLocation struct</param>
-    /// <param name="currentUser">Piece Class attached to Piece GameObject spawned</param>
-    internal PositionData(BoardLocation location, Piece currentUser)
-    {
-        this.location = location;
-        this.currentUser = currentUser;
-    }
-}
 
 /// <summary>
 /// Struct designed to hold basic constant data about each position of the board.

@@ -4,13 +4,19 @@ using UnityEngine;
 
 public class PlayerControlManager : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-		
-	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    /// <summary>
+    /// Called every frame
+    /// </summary>
+    private void Update()
+    {
+        //Mouse left click event
+        if (Input.GetMouseButtonDown(0))
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
+            {
+                Debug.Log(hit.collider.gameObject.GetComponent<Tile>());
+            }
+        }
+    }
 }

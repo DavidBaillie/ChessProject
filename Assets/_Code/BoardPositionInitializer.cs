@@ -46,14 +46,15 @@ public class BoardPositionInitializer : MonoBehaviour {
                 tilePoint.transform.position = new Vector3(x, 0, y);
                 tilePoint.transform.parent = boardParent.transform;
 
+                //Set the correct colour for the tiles
+                if (colourSwitch)
+                    tilePoint.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
+
                 //Give the tilePoint a Tile class for later usage
                 Tile t = tilePoint.AddComponent<Tile>();
                 t.initialize(new BoardLocation(tilePoint, x, y), getPieceToSpawn(x, y));
                 boardTileArray[x, y] = t;
-
-                //Set the correct colour for the tiles
-                if (colourSwitch)
-                    tilePoint.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
+                                
                 colourSwitch = !colourSwitch;
             }
         }

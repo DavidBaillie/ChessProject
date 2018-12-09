@@ -169,4 +169,49 @@ public class PossiblePositionManager : MonoBehaviour {
     {
 
     }
+
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="team"></param>
+    /// <returns></returns>
+    private List<Tile> getPawnTiles (int x, int y, int team)
+    {
+        List<Tile> options = new List<Tile>();
+
+        if (team == 0)
+        {
+            //Pawn still at starting position
+            if (x == 1)
+            {
+                if (tileDataArray[2, y].getCurrentPiece() == null)
+                    options.Add(tileDataArray[2, y]);
+                if (tileDataArray[2, y].getCurrentPiece() == null && tileDataArray[3, y].getCurrentPiece() == null)
+                    options.Add(tileDataArray[3, y]);
+            }
+            //Pawn is out on the board, check for forwards movement
+            else
+            {
+                if (tileDataArray[x + 1, y].getCurrentPiece() == null)
+                    options.Add(tileDataArray[x + 1, y]);
+            }
+
+            //Check for side motion
+            if (x < 7)
+            {
+                //Check if we can attack on the right
+                if (y < 7 && tileDataArray[x + 1, y + 1].getCurrentPiece() != null && tileDataArray[x + 1, y + 1].getCurrentPiece().team == 1)
+                    options.Add(tileDataArray[x + 1, y + 1]);
+                //Check if we can attack on the left
+                if (y > 0 && tileDataArray[x + 1, y - 1].getCurrentPiece() != null && tileDataArray[x + 1, y - 1].getCurrentPiece().team == 1)
+                    options.Add(tileDataArray[x + 1, y - 1]);
+            }
+        }
+        else
+        {
+
+        }
+    }
 }

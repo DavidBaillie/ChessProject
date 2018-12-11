@@ -122,40 +122,17 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         List<Tile> options = new List<Tile>();
 
-        //Possible moves for a pawn
-        if (type == PieceTypes.Pawn)
+        switch (type)
         {
-            //Pawn still at starting position
-            if (x == 1)
-            {
-                if (tileDataArray[2,y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[2, y]);
-                if (tileDataArray[2, y].getCurrentPiece() == null && tileDataArray[3, y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[3, y]);
-            }
-            //Pawn is out on the board, check for forwards movement
-            else
-            {
-                if (tileDataArray[x + 1, y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[x + 1, y]);
-            }
+            case PieceTypes.Pawn:
+                options = getPawnTiles(x, y, 0);
+                break;
+            case PieceTypes.Rook:
 
-            //Check for side motion
-            if (x < 7)
-            {
-                //Check if we can attack on the right
-                if (y < 7 && tileDataArray[x+1,y+1].getCurrentPiece() != null && tileDataArray[x+1,y+1].getCurrentPiece().team == 1)
-                    options.Add(tileDataArray[x + 1, y + 1]);
-                //Check if we can attack on the left
-                if (y > 0 && tileDataArray[x + 1, y - 1].getCurrentPiece() != null && tileDataArray[x + 1, y - 1].getCurrentPiece().team == 1)
-                    options.Add(tileDataArray[x + 1, y - 1]);
-            }
+                break;
         }
-        //Possible moves for Rook
-        else if (type == PieceTypes.Rook)
-        {
 
-        }
+        return options;
     }
 
     /// <summary>
@@ -167,20 +144,33 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns></returns>
     internal List<Tile> getAIPossibleTiles (int x, int y, PieceTypes type)
     {
+        List<Tile> options = new List<Tile>();
 
+        switch (type)
+        {
+            case PieceTypes.Pawn:
+                options = getPawnTiles(x, y, 1);
+                break;
+            case PieceTypes.Rook:
+
+                break;
+        }
+
+        return options;
     }
 
     /// <summary>
-    /// 
+    /// Given the pawn's team, this method will find all valid movement positions for the piece
     /// </summary>
-    /// <param name="x"></param>
-    /// <param name="y"></param>
-    /// <param name="team"></param>
-    /// <returns></returns>
+    /// <param name="x">X Coordinate of Tile</param>
+    /// <param name="y">Y Coordinate of Tile</param>
+    /// <param name="team">Piece Team</param>
+    /// <returns>List of possible Tiles to move to</returns>
     private List<Tile> getPawnTiles (int x, int y, int team)
     {
         List<Tile> options = new List<Tile>();
 
+        //Player pieces
         if (team == 0)
         {
             //Pawn still at starting position
@@ -209,9 +199,63 @@ public class PossiblePositionManager : MonoBehaviour {
                     options.Add(tileDataArray[x + 1, y - 1]);
             }
         }
+        //Moving AI pieces
         else
         {
+            //Pawn at starting position
+            if (x == 6)
+            {
+                if (tileDataArray[5, y].getCurrentPiece() == null)
+                    options.Add(tileDataArray[5, y]);
+                if (tileDataArray[5, y].getCurrentPiece() == null && tileDataArray[4, y].getCurrentPiece() == null)
+                    options.Add(tileDataArray[4, y]);
+            }
+            //Otherwise pawn out on board
+            else
+            {
+                if (tileDataArray[x - 1, y].getCurrentPiece() == null)
+                    options.Add(tileDataArray[x - 1, y]);
+            }
 
+            //Check for side motion
+            if (x > 0)
+            {
+                //Check if we can attack on the left
+                if (y < 7 && tileDataArray[x - 1, y + 1].getCurrentPiece() != null && tileDataArray[x - 1, y + 1].getCurrentPiece().team == 0)
+                    options.Add(tileDataArray[x - 1, y + 1]);
+                //Check if we can attack on the right
+                if (y > 0 && tileDataArray[x - 1, y - 1].getCurrentPiece() != null && tileDataArray[x - 1, y - 1].getCurrentPiece().team == 0)
+                    options.Add(tileDataArray[x - 1, y - 1]);
+            }
         }
+
+        return options;
+    }
+
+    /// <summary>
+    /// Given a rook's team and position, this method returns all possible Tiles the piece can move to
+    /// </summary>
+    /// <param name="x">X Coordinate of Rook</param>
+    /// <param name="y">Y Coordinate of Rook</param>
+    /// <param name="team">Team of Rook</param>
+    /// <returns>List of possible Tiles to move to</returns>
+    private List<Tile> getRookTiles (int x, int y, int team)
+    {
+        List<Tile> options = new List<Tile>();
+
+        //Iterate positive along X
+        for (int i = x + 1; i < 8; i++)
+        {
+            if (tileDataArray[i, y].getCurrentPiece() == null)
+            {
+                options.Add(tileDataArray[i, y]);
+            }
+            else
+            {
+
+            }
+        }
+
+        return options;
     }
 }

@@ -19,6 +19,7 @@ public class PossiblePositionManager : MonoBehaviour {
         tileDataArray = data;
     }
 
+
     /// <summary>
     /// Returns if it is the players turn currently
     /// </summary>
@@ -89,12 +90,14 @@ public class PossiblePositionManager : MonoBehaviour {
     /// </summary>
     /// <param name="start">Tile the Piece is starting on</param>
     /// <param name="end">Tile for the Piece to move to</param>
-    private void moveToTile (Tile start, Tile end)
+    internal void moveToTile (Tile start, Tile end)
     {
         start.getCurrentPiece().targetPosition = end.gameObject.transform.position + Vector3.up;
         end.setCurrentPiece(start.getCurrentPiece());
         start.setCurrentPiece(null);
     }
+
+
 
     /// <summary>
     /// Given a tile the method will return all possible tiles the associated Piece can move to
@@ -118,21 +121,27 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Type of Piece on Tile</param>
     /// <returns></returns>
-    internal List<Tile> getPlayerPossibleTiles (int x, int y, PieceTypes type)
+    private List<Tile> getPlayerPossibleTiles (int x, int y, PieceTypes type)
     {
-        List<Tile> options = new List<Tile>();
-
         switch (type)
         {
             case PieceTypes.Pawn:
-                options = getPawnTiles(x, y, 0);
-                break;
+                return getPawnTiles(x, y, 0);
             case PieceTypes.Rook:
-
-                break;
+                return getRookTiles(x, y, 0);
+            case PieceTypes.Knight:
+                return getKnightTiles(x, y, 0);
+            case PieceTypes.Bishop:
+                return getBishopTiles(x, y, 0);
+            case PieceTypes.Queen:
+                return getQueenTiles(x, y, 0);
+            case PieceTypes.King:
+                return getKingTiles(x, y, 0);
+            default:
+                Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
+                    "for unit " + type + " :: " + gameObject.name);
+                return new List<Tile>();
         }
-
-        return options;
     }
 
     /// <summary>
@@ -142,22 +151,30 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Piece Type on Tile</param>
     /// <returns></returns>
-    internal List<Tile> getAIPossibleTiles (int x, int y, PieceTypes type)
+    private List<Tile> getAIPossibleTiles (int x, int y, PieceTypes type)
     {
-        List<Tile> options = new List<Tile>();
-
         switch (type)
         {
             case PieceTypes.Pawn:
-                options = getPawnTiles(x, y, 1);
-                break;
+                return getPawnTiles(x, y, 1);
             case PieceTypes.Rook:
-
-                break;
+                return getRookTiles(x, y, 1);
+            case PieceTypes.Knight:
+                return getKnightTiles(x, y, 1);
+            case PieceTypes.Bishop:
+                return getBishopTiles(x, y, 1);
+            case PieceTypes.Queen:
+                return getQueenTiles(x, y, 1);
+            case PieceTypes.King:
+                return getKingTiles(x, y, 1);
+            default:
+                Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
+                    "for unit " + type + " :: " + gameObject.name);
+                return new List<Tile>();
         }
-
-        return options;
     }
+
+
 
     /// <summary>
     /// Given the pawn's team, this method will find all valid movement positions for the piece
@@ -243,19 +260,315 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         List<Tile> options = new List<Tile>();
 
-        //Iterate positive along X
+        //Iterate along positive X
         for (int i = x + 1; i < 8; i++)
         {
+            //If the next in order is empty
             if (tileDataArray[i, y].getCurrentPiece() == null)
             {
+                //Add it
                 options.Add(tileDataArray[i, y]);
             }
+            //Otherwise we found a tile
             else
             {
+                //If unit found is on other team
+                if (tileDataArray[i, y].getCurrentPiece().team != team)
+                {
+                    //We can take that unit
+                    options.Add(tileDataArray[i, y]);
+                }
 
+                //Can't grab Tiles past another unit
+                break;
+            }
+        }
+
+        //Iterate along negative X
+        for (int i = x - 1; i >= 0; i--)
+        {
+            //If the next in order is empty
+            if (tileDataArray[i, y].getCurrentPiece() == null)
+            {
+                //Add it
+                options.Add(tileDataArray[i, y]);
+            }
+            //Otherwise we found a tile
+            else
+            {
+                //If unit found is on other team
+                if (tileDataArray[i, y].getCurrentPiece().team != team)
+                {
+                    //We can take that unit
+                    options.Add(tileDataArray[i, y]);
+                }
+
+                //Can't grab Tiles past another unit
+                break;
+            }
+        }
+
+        //Iterate along positive Y
+        for (int i = y + 1; i < 8; i++)
+        {
+            //If the next in order is empty
+            if (tileDataArray[x, i].getCurrentPiece() == null)
+            {
+                //Add it
+                options.Add(tileDataArray[x, i]);
+            }
+            //Otherwise we found a tile
+            else
+            {
+                //If unit found is on other team
+                if (tileDataArray[x, i].getCurrentPiece().team != team)
+                {
+                    //We can take that unit
+                    options.Add(tileDataArray[x, i]);
+                }
+
+                //Can't grab Tiles past another unit
+                break;
+            }
+        }
+
+        //Iterate along negative Y
+        for (int i = y - 1; y >= 0; i--)
+        {
+            //If the next in order is empty
+            if (tileDataArray[x, i].getCurrentPiece() == null)
+            {
+                //Add it
+                options.Add(tileDataArray[x, i]);
+            }
+            //Otherwise we found a tile
+            else
+            {
+                //If unit found is on other team
+                if (tileDataArray[x, i].getCurrentPiece().team != team)
+                {
+                    //We can take that unit
+                    options.Add(tileDataArray[x, i]);
+                }
+
+                //Can't grab Tiles past another unit
+                break;
             }
         }
 
         return options;
+    }
+
+    /// <summary>
+    /// Give a Knight's position the method will return a List of all Tiles the knight can move to.
+    /// </summary>
+    /// <param name="x">X Coordinate of Knight</param>
+    /// <param name="y">Y Coordinate of Knight</param>
+    /// <param name="team">Team of Knight</param>
+    /// <returns>List of Tiles</returns>
+    private List<Tile> getKnightTiles (int x, int y, int team)
+    {
+        List<Tile> options = new List<Tile>();
+        Tile t;
+
+        //Check knight position 2/1
+        t = positionHelper(x + 2, y + 1, team);
+        if (t != null) options.Add(tileDataArray[x+2,y+1]);
+        //Check knight position 2/-1
+        t = positionHelper(x + 2, y - 1, team);
+        if (t != null) options.Add(tileDataArray[x + 2, y - 1]);
+
+        //Check knight position 1/2
+        t = positionHelper(x + 1, y + 2, team);
+        if (t != null) options.Add(tileDataArray[x + 1, y + 2]);
+        //Check knight position -1/2
+        t = positionHelper(x - 1, y + 2, team);
+        if (t != null) options.Add(tileDataArray[x - 1, y + 2]);
+
+        //Check knight position -2/1
+        t = positionHelper(x - 2, y + 1, team);
+        if (t != null) options.Add(tileDataArray[x - 2, y + 1]);
+        //Check knight position -2/-1
+        t = positionHelper(x -2, y - 1, team);
+        if (t != null) options.Add(tileDataArray[x - 2, y - 1]);
+
+        //Check knight position 1/-2
+        t = positionHelper(x + 1, y - 2, team);
+        if (t != null) options.Add(tileDataArray[x + 1, y - 2]);
+        //Check knight position -1/-2
+        t = positionHelper(x - 1, y - 2, team);
+        if (t != null) options.Add(tileDataArray[x - 1, y - 2]);
+
+        return options;
+    }
+
+    /// <summary>
+    /// Given a Bishops position the method will return a list of all Tiles the Bishop can move to
+    /// </summary>
+    /// <param name="x">X Coordinate of Bishop</param>
+    /// <param name="y">Y Coordinate of Bishop</param>
+    /// <param name="team">Team of Bishop</param>
+    /// <returns>List of Tiles the Bishop can move to</returns>
+    private List<Tile> getBishopTiles (int x, int y, int team)
+    {
+        List<Tile> options = new List<Tile>();
+
+        //Check x and y in +/+ direction
+        for (int i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++)
+        {
+            if (tileDataArray[i, j].getCurrentPiece() == null)
+            {
+                options.Add(tileDataArray[i, j]);
+            }
+            else
+            {
+                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                {
+                    options.Add(tileDataArray[i, j]);
+                }
+
+                break;
+            }
+        }
+
+        //Check x and y in -/- direction
+        for (int i = x - 1, j = y - 1; i >= 0 && j >= 0; i--, j--)
+        {
+            if (tileDataArray[i, j].getCurrentPiece() == null)
+            {
+                options.Add(tileDataArray[i, j]);
+            }
+            else
+            {
+                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                {
+                    options.Add(tileDataArray[i, j]);
+                }
+
+                break;
+            }
+        }
+
+        //Check x and y in +/- direction
+        for (int i = x + 1, j = y - 1; i < 8 && j >= 0; i++, j--)
+        {
+            if (tileDataArray[i, j].getCurrentPiece() == null)
+            {
+                options.Add(tileDataArray[i, j]);
+            }
+            else
+            {
+                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                {
+                    options.Add(tileDataArray[i, j]);
+                }
+
+                break;
+            }
+        }
+
+        //Check x and y in -/+ direction
+        for (int i = x - 1, j = y + 1; i >= 0 && j < 8; i--, j++)
+        {
+            if (tileDataArray[i, j].getCurrentPiece() == null)
+            {
+                options.Add(tileDataArray[i, j]);
+            }
+            else
+            {
+                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                {
+                    options.Add(tileDataArray[i, j]);
+                }
+
+                break;
+            }
+        }
+
+        return options;
+    }
+
+    /// <summary>
+    /// Given a Queen's position the method will return a list of all Tiles the piece can move to.
+    /// </summary>
+    /// <param name="x">X Coordinate of Queen</param>
+    /// <param name="y">Y Coordinate of Queen</param>
+    /// <param name="team">Team of Queen</param>
+    /// <returns>List of Tile</returns>
+    private List<Tile> getQueenTiles (int x, int y, int team)
+    {
+        List<Tile> options = new List<Tile>();
+
+        //Get rook movement tiles
+        options = getRookTiles(x, y, team);
+        //Add bishop movement tiles
+        options.AddRange(getBishopTiles(x, y, team));
+
+        return options;
+    }
+
+    /// <summary>
+    /// Given a King's position the method will return a list of all tiles the King can move to
+    /// </summary>
+    /// <param name="x">X Coordinate of King</param>
+    /// <param name="y">Y Coordinate of King</param>
+    /// <param name="team">Team of King</param>
+    /// <returns>List of Tiles</returns>
+    private List<Tile> getKingTiles (int x, int y, int team)
+    {
+        List<Tile> options = new List<Tile>();
+        Tile t;
+
+        //Check position 1/1
+        t = positionHelper(x + 1, y + 1, team);
+        if (t != null) options.Add(tileDataArray[x + 1, y + 1]);
+
+        //Check position 0/1
+        t = positionHelper(x, y + 1, team);
+        if (t != null) options.Add(tileDataArray[x, y + 1]);
+
+        //Check position 1/0
+        t = positionHelper(x + 1, y, team);
+        if (t != null) options.Add(tileDataArray[x + 1, y]);
+
+        //Check position -1/1
+        t = positionHelper(x - 1, y + 1, team);
+        if (t != null) options.Add(tileDataArray[x - 1, y + 1]);
+
+        //Check position 1/-1
+        t = positionHelper(x + 1, y - 1, team);
+        if (t != null) options.Add(tileDataArray[x + 1, y - 1]);
+
+        //Check position -1/-1
+        t = positionHelper(x - 1, y - 1, team);
+        if (t != null) options.Add(tileDataArray[x - 1, y - 1]);
+
+        //Check position -1/0
+        t = positionHelper(x - 1, y, team);
+        if (t != null) options.Add(tileDataArray[x - 1, y]);
+
+        //Check position 0/-1
+        t = positionHelper(x, y - 1, team);
+        if (t != null) options.Add(tileDataArray[x, y - 1]);
+
+        return options;
+    }
+
+
+    /// <summary>
+    /// Simple position check helper. Makes sure Tile is valid and within range.
+    /// </summary>
+    /// <param name="x">X Coordinate of Piece</param>
+    /// <param name="y">Y Coordinate of Piece</param>
+    /// <param name="team">Team of Piece</param>
+    /// <returns>Null if invalid, Tile if valid</returns>
+    private Tile positionHelper(int x, int y, int team)
+    {
+        if (x > 7 || x < 0 || y > 7 || y < 0) return null;
+
+        if (tileDataArray[x, y].getCurrentPiece() == null || tileDataArray[x, y].getCurrentPiece().team != team)
+            return tileDataArray[x, y];
+        else
+            return null;
     }
 }

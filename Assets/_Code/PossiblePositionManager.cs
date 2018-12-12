@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class PossiblePositionManager : MonoBehaviour {
 
-    private bool playersTurn = true;           //Tracks if it is the AI or players turn
-    private Tile[,] tileDataArray;      //Array of Tile classes representing game board
+    private bool playersTurn = true;            //Tracks if it is the AI or players turn
+    private Tile[,] currentTileData;            //Array of Tile classes representing game board
 
     private Tile currentSelectedTile;   //Data saved when the player selects a Piece/Tile to move to a new Tile
     private List<Tile> possibleTiles;   //Possible tiles to move towards based on the currentSelectedTile
@@ -16,11 +16,16 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="data">Array of all tiles on board</param>
     internal void  setTileDataArray (Tile[,] data)
     {
-        tileDataArray = data;
+        currentTileData = data;
 
         GetComponent<AIInterfaceManager>().initialize(this);
     }
 
+    /// <summary>
+    /// Called to get the current array of tiles on the board
+    /// </summary>
+    /// <returns></returns>
+    internal Tile[,] getTileArray () { return currentTileData; }
 
     /// <summary>
     /// Returns if it is the players turn currently
@@ -29,63 +34,10 @@ public class PossiblePositionManager : MonoBehaviour {
     internal bool isPlayersTurn () { return playersTurn; }
 
     /// <summary>
-    /// Called by the PlayerControlManager when the player clicks on a tile to select a piece to move.
+    /// Called to set the playersTurn boolean
     /// </summary>
-    /// <param name="selected">Tile class attached to the GameObject clicked on</param>
-    /// <returns>Boolean indicating result of selection</returns>
-    internal bool playerSelectedTile (Tile selected)
-    {
-        //Do nothing on AI turn
-        if (playersTurn == false) return false;
-        
-        //If the player has no previous selection
-        if (currentSelectedTile == null)
-        {
-            //New tile selection has no piece, there's nothing to save
-            if (selected.getCurrentPiece() == null) return false;
-            //No selecting the AI pieces
-            if (selected.getCurrentPiece().team == 1) return false;
-
-            //Save the tile as our starting point and register possible movement options
-            currentSelectedTile = selected;
-            possibleTiles = getPossibleTileOptions(currentSelectedTile);
-        }
-        //Otherwise they're looking to move the selected piece
-        else
-        {
-            //If the player clicked on an allowable tile to move to 
-            if (possibleTiles.Contains(selected))
-            {
-                //Move the piece to the new tile
-                moveToTile(currentSelectedTile, selected, 0);
-                playersTurn = false;
-                currentSelectedTile = null;
-                possibleTiles = null;
-                return true;
-            }
-            //Otherwise it was a non-moveable tile
-            else
-            {
-                //Player clicked on an open tile or an AI piece, reset selection
-                if (selected.getCurrentPiece() == null || selected.getCurrentPiece().team == 1)
-                {
-                    currentSelectedTile = null;
-                    possibleTiles = null;
-                    return false;
-                }
-                //If the player clicked on another of their own pieces, switch selection to that piece
-                if (selected.getCurrentPiece().team == 0)
-                {
-                    currentSelectedTile = selected;
-                    possibleTiles = getPossibleTileOptions(currentSelectedTile);
-                    return false;
-                }
-            }
-        }
-
-        //Default return for some weird edge case I haven't thought of
-        return false;
-    }
+    /// <param name="turn">Boolean to set playersTurn to</param>
+    internal void setIsPlayerTurn (bool turn) { playersTurn = turn; }
 
     /// <summary>
     /// Called to instruct a a Piece to move from one Tile to another
@@ -112,7 +64,7 @@ public class PossiblePositionManager : MonoBehaviour {
     }
 
 
-
+    /*
     /// <summary>
     /// Given a tile the method will return all possible tiles the associated Piece can move to
     /// </summary>
@@ -127,30 +79,61 @@ public class PossiblePositionManager : MonoBehaviour {
         else
             return getAIPossibleTiles(tile.getXPosition(), tile.getYPosition(), tile.getCurrentPiece().type);
     }
+    */
 
     /// <summary>
-    /// Returns the possible Tiles the provided Piece can move to.
+    /// Returns the possible Tiles the provided Piece can move to using the current world Tiles
     /// </summary>
     /// <param name="x">X position of Tile</param>
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Type of Piece on Tile</param>
     /// <returns></returns>
-    internal List<Tile> getPlayerPossibleTiles (int x, int y, PieceTypes type)
+    internal List<Tile> getPlayerPossibleTiles(int x, int y, PieceTypes type)
     {
         switch (type)
         {
             case PieceTypes.Pawn:
-                return getPawnTiles(x, y, 0);
+                return getPawnTiles(x, y, 0, currentTileData);
             case PieceTypes.Rook:
-                return getRookTiles(x, y, 0);
+                return getRookTiles(x, y, 0, currentTileData);
             case PieceTypes.Knight:
-                return getKnightTiles(x, y, 0);
+                return getKnightTiles(x, y, 0, currentTileData);
             case PieceTypes.Bishop:
-                return getBishopTiles(x, y, 0);
+                return getBishopTiles(x, y, 0, currentTileData);
             case PieceTypes.Queen:
-                return getQueenTiles(x, y, 0);
+                return getQueenTiles(x, y, 0, currentTileData);
             case PieceTypes.King:
-                return getKingTiles(x, y, 0);
+                return getKingTiles(x, y, 0, currentTileData);
+            default:
+                Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
+                    "for unit " + type + " :: " + gameObject.name);
+                return new List<Tile>();
+        }
+    }
+
+    /// <summary>
+    /// Returns the possible Tiles the provided Piece can move to using a provided tile array
+    /// </summary>
+    /// <param name="x">X position of Tile</param>
+    /// <param name="y">Y position of Tile</param>
+    /// <param name="type">Type of Piece on Tile</param>
+    /// <returns></returns>
+    internal List<Tile> getPlayerPossibleTiles (int x, int y, PieceTypes type, Tile[,] currentTiles)
+    {
+        switch (type)
+        {
+            case PieceTypes.Pawn:
+                return getPawnTiles(x, y, 0, currentTiles);
+            case PieceTypes.Rook:
+                return getRookTiles(x, y, 0, currentTiles);
+            case PieceTypes.Knight:
+                return getKnightTiles(x, y, 0, currentTiles);
+            case PieceTypes.Bishop:
+                return getBishopTiles(x, y, 0, currentTiles);
+            case PieceTypes.Queen:
+                return getQueenTiles(x, y, 0, currentTiles);
+            case PieceTypes.King:
+                return getKingTiles(x, y, 0, currentTiles);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
                     "for unit " + type + " :: " + gameObject.name);
@@ -165,22 +148,22 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Piece Type on Tile</param>
     /// <returns></returns>
-    internal List<Tile> getAIPossibleTiles (int x, int y, PieceTypes type)
+    internal List<Tile> getAIPossibleTiles (int x, int y, PieceTypes type, Tile[,] currentTiles)
     {
         switch (type)
         {
             case PieceTypes.Pawn:
-                return getPawnTiles(x, y, 1);
+                return getPawnTiles(x, y, 1, currentTiles);
             case PieceTypes.Rook:
-                return getRookTiles(x, y, 1);
+                return getRookTiles(x, y, 1, currentTiles);
             case PieceTypes.Knight:
-                return getKnightTiles(x, y, 1);
+                return getKnightTiles(x, y, 1, currentTiles);
             case PieceTypes.Bishop:
-                return getBishopTiles(x, y, 1);
+                return getBishopTiles(x, y, 1, currentTiles);
             case PieceTypes.Queen:
-                return getQueenTiles(x, y, 1);
+                return getQueenTiles(x, y, 1, currentTiles);
             case PieceTypes.King:
-                return getKingTiles(x, y, 1);
+                return getKingTiles(x, y, 1, currentTiles);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
                     "for unit " + type + " :: " + gameObject.name);
@@ -197,7 +180,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Tile</param>
     /// <param name="team">Piece Team</param>
     /// <returns>List of possible Tiles to move to</returns>
-    private List<Tile> getPawnTiles (int x, int y, int team)
+    private List<Tile> getPawnTiles (int x, int y, int team, Tile[,] tileDataArray)
     {
         Debug.Log("Running Pawn Check!");
         List<Tile> options = new List<Tile>();
@@ -272,7 +255,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Rook</param>
     /// <param name="team">Team of Rook</param>
     /// <returns>List of possible Tiles to move to</returns>
-    private List<Tile> getRookTiles (int x, int y, int team)
+    private List<Tile> getRookTiles (int x, int y, int team, Tile[,] tileDataArray)
     {
         Debug.Log("Running Rook Check!");
         List<Tile> options = new List<Tile>();
@@ -383,38 +366,38 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Knight</param>
     /// <param name="team">Team of Knight</param>
     /// <returns>List of Tiles</returns>
-    private List<Tile> getKnightTiles (int x, int y, int team)
+    private List<Tile> getKnightTiles (int x, int y, int team, Tile[,] tileDataArray)
     {
         Debug.Log("Running Knight Check!");
         List<Tile> options = new List<Tile>();
         Tile t;
 
         //Check knight position 2/1
-        t = positionHelper(x + 2, y + 1, team);
+        t = positionHelper(x + 2, y + 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x+2,y+1]);
         //Check knight position 2/-1
-        t = positionHelper(x + 2, y - 1, team);
+        t = positionHelper(x + 2, y - 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x + 2, y - 1]);
 
         //Check knight position 1/2
-        t = positionHelper(x + 1, y + 2, team);
+        t = positionHelper(x + 1, y + 2, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x + 1, y + 2]);
         //Check knight position -1/2
-        t = positionHelper(x - 1, y + 2, team);
+        t = positionHelper(x - 1, y + 2, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x - 1, y + 2]);
 
         //Check knight position -2/1
-        t = positionHelper(x - 2, y + 1, team);
+        t = positionHelper(x - 2, y + 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x - 2, y + 1]);
         //Check knight position -2/-1
-        t = positionHelper(x -2, y - 1, team);
+        t = positionHelper(x -2, y - 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x - 2, y - 1]);
 
         //Check knight position 1/-2
-        t = positionHelper(x + 1, y - 2, team);
+        t = positionHelper(x + 1, y - 2, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x + 1, y - 2]);
         //Check knight position -1/-2
-        t = positionHelper(x - 1, y - 2, team);
+        t = positionHelper(x - 1, y - 2, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x - 1, y - 2]);
 
         return options;
@@ -427,7 +410,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Bishop</param>
     /// <param name="team">Team of Bishop</param>
     /// <returns>List of Tiles the Bishop can move to</returns>
-    private List<Tile> getBishopTiles (int x, int y, int team)
+    private List<Tile> getBishopTiles (int x, int y, int team, Tile[,] tileDataArray)
     {
         Debug.Log("Running Bishop Check!");
         List<Tile> options = new List<Tile>();
@@ -514,15 +497,15 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Queen</param>
     /// <param name="team">Team of Queen</param>
     /// <returns>List of Tile</returns>
-    private List<Tile> getQueenTiles (int x, int y, int team)
+    private List<Tile> getQueenTiles (int x, int y, int team, Tile[,] tileDataArray)
     {
         Debug.Log("Running Queen Check!");
         List<Tile> options = new List<Tile>();
 
         //Get rook movement tiles
-        options = getRookTiles(x, y, team);
+        options = getRookTiles(x, y, team, tileDataArray);
         //Add bishop movement tiles
-        options.AddRange(getBishopTiles(x, y, team));
+        options.AddRange(getBishopTiles(x, y, team, tileDataArray));
 
         return options;
     }
@@ -534,42 +517,42 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of King</param>
     /// <param name="team">Team of King</param>
     /// <returns>List of Tiles</returns>
-    private List<Tile> getKingTiles (int x, int y, int team)
+    private List<Tile> getKingTiles (int x, int y, int team, Tile[,] tileDataArray)
     {
         Debug.Log("Running King Check!");
         List<Tile> options = new List<Tile>();
         Tile t;
 
         //Check position 1/1
-        t = positionHelper(x + 1, y + 1, team);
+        t = positionHelper(x + 1, y + 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x + 1, y + 1]);
 
         //Check position 0/1
-        t = positionHelper(x, y + 1, team);
+        t = positionHelper(x, y + 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x, y + 1]);
 
         //Check position 1/0
-        t = positionHelper(x + 1, y, team);
+        t = positionHelper(x + 1, y, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x + 1, y]);
 
         //Check position -1/1
-        t = positionHelper(x - 1, y + 1, team);
+        t = positionHelper(x - 1, y + 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x - 1, y + 1]);
 
         //Check position 1/-1
-        t = positionHelper(x + 1, y - 1, team);
+        t = positionHelper(x + 1, y - 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x + 1, y - 1]);
 
         //Check position -1/-1
-        t = positionHelper(x - 1, y - 1, team);
+        t = positionHelper(x - 1, y - 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x - 1, y - 1]);
 
         //Check position -1/0
-        t = positionHelper(x - 1, y, team);
+        t = positionHelper(x - 1, y, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x - 1, y]);
 
         //Check position 0/-1
-        t = positionHelper(x, y - 1, team);
+        t = positionHelper(x, y - 1, team, tileDataArray);
         if (t != null) options.Add(tileDataArray[x, y - 1]);
 
         return options;
@@ -583,7 +566,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Piece</param>
     /// <param name="team">Team of Piece</param>
     /// <returns>Null if invalid, Tile if valid</returns>
-    private Tile positionHelper(int x, int y, int team)
+    private Tile positionHelper(int x, int y, int team, Tile[,] tileDataArray)
     {
         if (x > 7 || x < 0 || y > 7 || y < 0) return null;
 

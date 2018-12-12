@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour {
 
-    private BoardLocation localLocationData;
-    [SerializeField]private Piece currentPiece;
+    internal BoardLocation localLocationData;
+    [SerializeField]internal Piece currentPiece;
 
     private Material material;
     private Color baseColour;

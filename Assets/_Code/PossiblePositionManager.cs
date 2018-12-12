@@ -4,7 +4,7 @@ using UnityEngine;
 
 public class PossiblePositionManager : MonoBehaviour {
 
-    private bool playersTurn;           //Tracks if it is the AI or players turn
+    private bool playersTurn = true;           //Tracks if it is the AI or players turn
     private Tile[,] tileDataArray;      //Array of Tile classes representing game board
 
     private Tile currentSelectedTile;   //Data saved when the player selects a Piece/Tile to move to a new Tile
@@ -17,6 +17,8 @@ public class PossiblePositionManager : MonoBehaviour {
     internal void  setTileDataArray (Tile[,] data)
     {
         tileDataArray = data;
+
+        GetComponent<AIInterfaceManager>().initialize(this);
     }
 
 
@@ -55,7 +57,7 @@ public class PossiblePositionManager : MonoBehaviour {
             if (possibleTiles.Contains(selected))
             {
                 //Move the piece to the new tile
-                moveToTile(currentSelectedTile, selected);
+                moveToTile(currentSelectedTile, selected, 0);
                 playersTurn = false;
                 currentSelectedTile = null;
                 possibleTiles = null;
@@ -90,9 +92,21 @@ public class PossiblePositionManager : MonoBehaviour {
     /// </summary>
     /// <param name="start">Tile the Piece is starting on</param>
     /// <param name="end">Tile for the Piece to move to</param>
-    internal void moveToTile (Tile start, Tile end)
+    internal void moveToTile (Tile start, Tile end, int team)
     {
-        start.getCurrentPiece().targetPosition = end.gameObject.transform.position + Vector3.up;
+        //Update who's turn it is
+        if (team == 0) playersTurn = false;
+        else playersTurn = true;
+
+        //Kill any pieces we take
+        if (end.getCurrentPiece() != null)
+        {
+            Destroy(end.getCurrentPiece().gameObject, 0.5f);
+            end.setCurrentPiece(null);
+        }
+
+        //Instruct pieces to move
+        start.getCurrentPiece().targetPosition = end.gameObject.transform.position + (Vector3.up/2);
         end.setCurrentPiece(start.getCurrentPiece());
         start.setCurrentPiece(null);
     }

@@ -6,12 +6,16 @@ public class PlayerControlManager : MonoBehaviour {
 
     private PossiblePositionManager positionsManager;
 
+    private Tile selected;
+    private List<Tile> options;
+
     /// <summary>
     /// Called at scene start
     /// </summary>
     private void Awake()
     {
         positionsManager = GetComponent<PossiblePositionManager>();
+        options = new List<Tile>();
     }
 
     /// <summary>
@@ -22,25 +26,53 @@ public class PlayerControlManager : MonoBehaviour {
         //Mouse left click event
         if (Input.GetMouseButtonDown(0))
         {
+            //Don't let the player do anything if it's not their turn
+            if (positionsManager.isPlayersTurn() == false) return;
+
             RaycastHit hit;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
             {
-                Debug.Log(hit.collider.gameObject.GetComponent<Tile>());
-
                 Tile current = hit.collider.gameObject.GetComponent<Tile>();
-                if (current.getCurrentPiece() == null) { Debug.Log("Null Tile Clicked"); return; }
 
-                List<Tile> options = 
-                    positionsManager.getPlayerPossibleTiles(current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
-
-                //Debug Info for outputing options
-                string output = "Possible Moves: " + options.Count + "\n";
-                for (int i = 0; i < options.Count; i++)
+                //Case when nothing selected
+                if (selected == null)
                 {
-                    output += i + ": " + options[i].getXPosition() + "/" + options[i].getYPosition() + "\n";
+                    //There is a valid piece to select
+                    if (current.getCurrentPiece() != null && current.getCurrentPiece().team == 0)
+                    {
+                        //Save selection and get valid movement options
+                        selected = current;
+                        options = positionsManager.getPlayerPossibleTiles
+                            (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);                     
+                    }
+
+                    return;
                 }
-                output += " " + "\n";
-                Debug.Log(output);
+                
+                //Otherwise we can check for movement or de-select
+                if (options.Contains(current))
+                {
+                    positionsManager.moveToTile(selected, current, 0);
+                    selected = null;
+                    current = null;
+                }
+                //Otherwise we figure out what to do other than moving a piece
+                else
+                {
+                    //Case where the player clicked on another one of their pieces
+                    if (current.getCurrentPiece().team == 0)
+                    {
+                        //Change selection to new piece
+                        selected = current;
+                        options = positionsManager.getPlayerPossibleTiles
+                            (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
+                    }
+                    //Otherwise clear selection
+                    else
+                    {
+                        selected = null;
+                    }
+                }
             }
         }
     }

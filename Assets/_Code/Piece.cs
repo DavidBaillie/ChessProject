@@ -33,7 +33,7 @@ public class Piece : MonoBehaviour {
     {
         if (Vector3.Distance(transform.position, targetPosition) > 0)
         {
-            transform.position = Vector3.MoveTowards(transform.position, targetPosition, Time.deltaTime);
+            transform.position = Vector3.MoveTowards(transform.position, targetPosition, Time.deltaTime * 2);
         }
     }
 }

@@ -121,7 +121,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Type of Piece on Tile</param>
     /// <returns></returns>
-    private List<Tile> getPlayerPossibleTiles (int x, int y, PieceTypes type)
+    internal List<Tile> getPlayerPossibleTiles (int x, int y, PieceTypes type)
     {
         switch (type)
         {
@@ -151,7 +151,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Piece Type on Tile</param>
     /// <returns></returns>
-    private List<Tile> getAIPossibleTiles (int x, int y, PieceTypes type)
+    internal List<Tile> getAIPossibleTiles (int x, int y, PieceTypes type)
     {
         switch (type)
         {
@@ -185,6 +185,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns>List of possible Tiles to move to</returns>
     private List<Tile> getPawnTiles (int x, int y, int team)
     {
+        Debug.Log("Running Pawn Check!");
         List<Tile> options = new List<Tile>();
 
         //Player pieces
@@ -219,6 +220,7 @@ public class PossiblePositionManager : MonoBehaviour {
         //Moving AI pieces
         else
         {
+            Debug.Log("ON AI TEAM");
             //Pawn at starting position
             if (x == 6)
             {
@@ -258,6 +260,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns>List of possible Tiles to move to</returns>
     private List<Tile> getRookTiles (int x, int y, int team)
     {
+        Debug.Log("Running Rook Check!");
         List<Tile> options = new List<Tile>();
 
         //Iterate along positive X
@@ -286,7 +289,7 @@ public class PossiblePositionManager : MonoBehaviour {
 
         //Iterate along negative X
         for (int i = x - 1; i >= 0; i--)
-        {
+        {            
             //If the next in order is empty
             if (tileDataArray[i, y].getCurrentPiece() == null)
             {
@@ -333,7 +336,7 @@ public class PossiblePositionManager : MonoBehaviour {
         }
 
         //Iterate along negative Y
-        for (int i = y - 1; y >= 0; i--)
+        for (int i = y - 1; i >= 0; i--)
         {
             //If the next in order is empty
             if (tileDataArray[x, i].getCurrentPiece() == null)
@@ -368,6 +371,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns>List of Tiles</returns>
     private List<Tile> getKnightTiles (int x, int y, int team)
     {
+        Debug.Log("Running Knight Check!");
         List<Tile> options = new List<Tile>();
         Tile t;
 
@@ -411,6 +415,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns>List of Tiles the Bishop can move to</returns>
     private List<Tile> getBishopTiles (int x, int y, int team)
     {
+        Debug.Log("Running Bishop Check!");
         List<Tile> options = new List<Tile>();
 
         //Check x and y in +/+ direction
@@ -497,6 +502,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns>List of Tile</returns>
     private List<Tile> getQueenTiles (int x, int y, int team)
     {
+        Debug.Log("Running Queen Check!");
         List<Tile> options = new List<Tile>();
 
         //Get rook movement tiles
@@ -516,6 +522,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns>List of Tiles</returns>
     private List<Tile> getKingTiles (int x, int y, int team)
     {
+        Debug.Log("Running King Check!");
         List<Tile> options = new List<Tile>();
         Tile t;
 

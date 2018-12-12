@@ -26,14 +26,21 @@ public class PlayerControlManager : MonoBehaviour {
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
             {
                 Debug.Log(hit.collider.gameObject.GetComponent<Tile>());
+
                 Tile current = hit.collider.gameObject.GetComponent<Tile>();
                 if (current.getCurrentPiece() == null) { Debug.Log("Null Tile Clicked"); return; }
+
                 List<Tile> options = 
                     positionsManager.getPlayerPossibleTiles(current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
-                foreach (Tile t in options)
+
+                //Debug Info for outputing options
+                string output = "Possible Moves: " + options.Count + "\n";
+                for (int i = 0; i < options.Count; i++)
                 {
-                    Debug.Log("Options: " + t.getXPosition() + "/" + t.getYPosition());
+                    output += i + ": " + options[i].getXPosition() + "/" + options[i].getYPosition() + "\n";
                 }
+                output += " " + "\n";
+                Debug.Log(output);
             }
         }
     }

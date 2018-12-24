@@ -1,12 +1,21 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using UnityEngine;
 
+/// <summary>
+/// Class attached to Unity GameObject representing a Tile on the Game Board. 
+/// Tile class tracks where it is, what visual indicators to display, and what Piece can be found 
+/// at this location/Tile.
+/// </summary>
 public class Tile : MonoBehaviour {
 
-    internal BoardLocation localLocationData;
+    //Board Location Data    
+    private GameObject tileObject;
+    private int xPosition;
+    private int yPosition;
+
+    //Piece being housed on this Tile
     [SerializeField]internal Piece currentPiece;
 
+    //Unity facing stuff
     private Material material;
     private Color baseColour;
     private Color availableColour = Color.yellow;
@@ -15,16 +24,24 @@ public class Tile : MonoBehaviour {
     /// <summary>
     /// Constructor
     /// </summary>
-    internal void initialize(BoardLocation localLocationData, Piece currentPiece)
+    internal void initialize(Piece currentPiece, int xPosition, int yPosition, GameObject tileObject)
     {
-        this.localLocationData = localLocationData;
+        //Save Tile position data
+        this.xPosition = xPosition;
+        this.yPosition = yPosition;
+        this.tileObject = tileObject;
+
+        //Save Piece data for piece on tile
         this.currentPiece = currentPiece;
+
+        //Unity set up for the Piece on this tile - only runs once at start
         if (currentPiece != null)
         {
             currentPiece.gameObject.transform.localScale = new Vector3(0.4f, 0.4f, 0.4f);
             currentPiece.gameObject.name = currentPiece.type.ToString();
         }
 
+        //Set Material component data
         material = GetComponent<Renderer>().material;
         baseColour = GetComponent<Renderer>().material.color;
     }
@@ -59,17 +76,27 @@ public class Tile : MonoBehaviour {
     /// Returns the X position of this tile
     /// </summary>
     /// <returns></returns>
-    internal int getXPosition() { return localLocationData.xPosition; }
+    internal int getXPosition() { return xPosition; }
+
     /// <summary>
     /// Returns the Y position of this tile
     /// </summary>
     /// <returns></returns>
-    internal int getYPosition() { return localLocationData.yPosition; }
+    internal int getYPosition() { return yPosition; }
+
+    /// <summary>
+    /// Returns the GameObject for this Tile
+    /// </summary>
+    /// <returns>GameObject</returns>
+    internal GameObject getTileObject() { return tileObject; }
+
+
     /// <summary>
     /// Returns the piece using this tile
     /// </summary>
     /// <returns></returns>
     internal Piece getCurrentPiece () { return currentPiece; }
+
     /// <summary>
     /// Called to set the current Piece for this Tile
     /// </summary>

@@ -270,8 +270,8 @@ public class PossiblePositionManager : MonoBehaviour {
             {
                 options.Add(new MovementData(tile, 
                     tileDataArray[tile.getXPosition() + 1, lastMove.endTile.getYPosition()],
-                    StateChange.EnPassen, tileDataArray[lastMove.endTile.getXPosition(), 
-                    lastMove.endTile.getYPosition()]));
+                    StateChange.EnPassen, 
+                    tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
             }
         }
         //Moving AI pieces
@@ -305,9 +305,13 @@ public class PossiblePositionManager : MonoBehaviour {
 
             //Check for en passen
             if (pawnDoubleMoveLastTurn()
-                && tile.getXPosition() == lastMove.endTile.getXPosition())
+                && tile.getXPosition() == lastMove.endTile.getXPosition()
+                && Mathf.Abs(tile.getYPosition() - lastMove.endTile.getYPosition()) == 1)
             {
-
+                options.Add(new MovementData(tile,
+                    tileDataArray[tile.getXPosition() - 1, lastMove.endTile.getYPosition()],
+                    StateChange.EnPassen,
+                    tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
             }
         }
 

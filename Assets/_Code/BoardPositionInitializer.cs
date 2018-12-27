@@ -80,25 +80,25 @@ public class BoardPositionInitializer : MonoBehaviour {
         {
             GameObject pawn = Instantiate(Pawn);
             Piece p = pawn.AddComponent<Piece>();
-            p.initialize(new Vector3(x, 0, y), PieceTypes.Pawn, 0);
+            p.initialize(new Vector3(x, 0, y), PieceTypes.Pawn, Team.Player);
             return p;
         }
         if (x == BOARD_SIZE - 2)
         {
             GameObject pawn = Instantiate(Pawn);
             Piece p = pawn.AddComponent<Piece>();
-            p.initialize(new Vector3(x, 0, y), PieceTypes.Pawn, 1);
+            p.initialize(new Vector3(x, 0, y), PieceTypes.Pawn, Team.AI);
             return p;
         }
 
         //Otherwise determine what piece goes to what position
         if (x == 0)
         {
-            return generatePiece(x, y, 0);
+            return generatePiece(x, y, Team.Player);
         }
         else if (x == BOARD_SIZE - 1)
         {
-            return generatePiece(x, y, 1);
+            return generatePiece(x, y, Team.AI);
         }
         else
         {
@@ -115,7 +115,7 @@ public class BoardPositionInitializer : MonoBehaviour {
     /// <param name="y">Y Position of the Piece</param>
     /// <param name="team">Team number to return with</param>
     /// <returns>Piece Class</returns>
-    private Piece generatePiece (int x, int y, int team)
+    private Piece generatePiece (int x, int y, Team team)
     {
         switch (y)
         {

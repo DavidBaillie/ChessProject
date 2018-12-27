@@ -53,12 +53,7 @@ public class AIInterfaceManager : MonoBehaviour {
     /// <param name="y2">Move to Y Coordinate</param>
     internal void finishAITurn ()
     {
-        positionManager.setIsPlayerTurn(true);
-
-        positionManager.moveToTile(
-            positionManager.getTileArray()[finalData.startXPosition, finalData.startYPosition],
-            positionManager.getTileArray()[finalData.endXPosition, finalData.endYPosition], 
-            1);
+        positionManager.moveToTile(finalChoice);
     }
 
     /// <summary>
@@ -167,16 +162,14 @@ public class AIInterfaceManager : MonoBehaviour {
     internal List<MovementData> AC_getMovementOptions (Tile tile, Tile[,] inputArray)
     {
         //Get possible movement options
-        List<Tile> options;
+        List<MovementData> options;
         if (tile.getCurrentPiece().team == Team.Player)
         {
-            //options = positionManager.getPlayerPossibleTiles(xCoordinate, yCoordinate, inputArray[xCoordinate, yCoordinate].type, convertedArray);
-            options = positionManager.getPlayerPossibleTiles(tile.getXPosition(), tile.getYPosition(), tile.getCurrentPiece().type, inputArray);
+            options = positionManager.getPlayerPossibleTiles(tile, inputArray);
         }
         else
         {
-            //options = positionManager.getAIPossibleTiles(xCoordinate, yCoordinate, inputArray[xCoordinate, yCoordinate].type, convertedArray);
-            options = positionManager.getAIPossibleTiles(tile.getXPosition(), tile.getYPosition(), tile.getCurrentPiece().type, inputArray);
+            options = positionManager.getAIPossibleTiles(tile, inputArray);
         }
 
         return options;

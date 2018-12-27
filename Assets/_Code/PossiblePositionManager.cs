@@ -10,6 +10,8 @@ public class PossiblePositionManager : MonoBehaviour {
     private Tile currentSelectedTile;           //Data saved when the player selects a Piece/Tile to move to a new Tile
     private List<Tile> possibleTiles;           //Possible tiles to move towards based on the currentSelectedTile
 
+    private MovementData lastMove;              //Previous move made before current turn
+
     /// <summary>
     /// Called when the BoardPositionInitializer finishes spawning all tiles with pieces
     /// </summary>
@@ -31,6 +33,8 @@ public class PossiblePositionManager : MonoBehaviour {
         //Update who's turn it is
         if (data.startTile.getCurrentPiece().team == Team.Player) playersTurn = false;
         else playersTurn = true;
+
+        lastMove = data;
 
         //Move pieces according to parameter data
         Tile start, end, startTwo, endTwo;
@@ -130,14 +134,14 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Type of Piece on Tile</param>
     /// <returns></returns>
-    internal List<Tile> getPlayerPossibleTiles(int x, int y, PieceTypes type)
+    internal List<MovementData> getPlayerPossibleTiles(int x, int y, PieceTypes type)
     {
         switch (type)
         {
             case PieceTypes.Pawn:
-                return getPawnTiles(x, y, 0, boardTileArray);
+                return getPawnTiles(boardTileArray[x,y], boardTileArray);
             case PieceTypes.Rook:
-                return getRookTiles(x, y, 0, boardTileArray);
+                return getRookTiles(boardTileArray[x, y], boardTileArray);
             case PieceTypes.Knight:
                 return getKnightTiles(x, y, 0, boardTileArray);
             case PieceTypes.Bishop:
@@ -149,7 +153,7 @@ public class PossiblePositionManager : MonoBehaviour {
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
                     "for unit " + type + " :: " + gameObject.name);
-                return new List<Tile>();
+                return new List<MovementData>();
         }
     }
 
@@ -160,12 +164,12 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Type of Piece on Tile</param>
     /// <returns></returns>
-    internal List<Tile> getPlayerPossibleTiles (int x, int y, PieceTypes type, Tile[,] currentTiles)
+    internal List<MovementData> getPlayerPossibleTiles (Tile tile, Tile[,] currentTiles)
     {
-        switch (type)
+        switch (tile.getCurrentPiece().type)
         {
             case PieceTypes.Pawn:
-                return getPawnTiles(x, y, 0, currentTiles);
+                return getPawnTiles(tile, currentTiles);
             case PieceTypes.Rook:
                 return getRookTiles(x, y, 0, currentTiles);
             case PieceTypes.Knight:
@@ -178,8 +182,8 @@ public class PossiblePositionManager : MonoBehaviour {
                 return getKingTiles(x, y, 0, currentTiles);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
-                    "for unit " + type + " :: " + gameObject.name);
-                return new List<Tile>();
+                    "for unit " + tile.getCurrentPiece().type + " :: " + gameObject.name);
+                return new List<MovementData>();
         }
     }
 
@@ -190,9 +194,9 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y position of Tile</param>
     /// <param name="type">Piece Type on Tile</param>
     /// <returns></returns>
-    internal List<Tile> getAIPossibleTiles (int x, int y, PieceTypes type, Tile[,] currentTiles)
+    internal List<MovementData> getAIPossibleTiles (Tile tile, Tile[,] currentTiles)
     {
-        switch (type)
+        switch (tile.getCurrentPiece().type)
         {
             case PieceTypes.Pawn:
                 return getPawnTiles(x, y, 1, currentTiles);
@@ -222,57 +226,70 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Tile</param>
     /// <param name="team">Piece Team</param>
     /// <returns>List of possible Tiles to move to</returns>
-    private List<Tile> getPawnTiles (int x, int y, int team, Tile[,] tileDataArray)
+    private List<MovementData> getPawnTiles (Tile tile, Tile[,] tileDataArray)
     {
-        Debug.Log("Running Pawn Check!");
-        List<Tile> options = new List<Tile>();
+        List<MovementData> options = new List<MovementData>();
+        Team team = tile.getCurrentPiece().team;
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+
 
         //Player pieces
-        if (team == 0)
+        if (team == Team.Player)
         {
             //Pawn still at starting position
             if (x == 1)
             {
                 if (tileDataArray[2, y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[2, y]);
+                    options.Add(new MovementData(tile, tileDataArray[2, y], StateChange.StandardMovement));
                 if (tileDataArray[2, y].getCurrentPiece() == null && tileDataArray[3, y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[3, y]);
+                    options.Add(new MovementData(tile, tileDataArray[3, y], StateChange.StandardMovement));
             }
             //Pawn is out on the board, check for forwards movement
             else
             {
                 if (tileDataArray[x + 1, y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[x + 1, y]);
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
             }
 
             //Check for side motion
             if (x < 7)
             {
                 //Check if we can attack on the right
-                if (y < 7 && tileDataArray[x + 1, y + 1].getCurrentPiece() != null && tileDataArray[x + 1, y + 1].getCurrentPiece().team == 1)
-                    options.Add(tileDataArray[x + 1, y + 1]);
+                if (y < 7 && tileDataArray[x + 1, y + 1].getCurrentPiece() != null && tileDataArray[x + 1, y + 1].getCurrentPiece().team == Team.AI)
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardTaken));
                 //Check if we can attack on the left
-                if (y > 0 && tileDataArray[x + 1, y - 1].getCurrentPiece() != null && tileDataArray[x + 1, y - 1].getCurrentPiece().team == 1)
-                    options.Add(tileDataArray[x + 1, y - 1]);
+                if (y > 0 && tileDataArray[x + 1, y - 1].getCurrentPiece() != null && tileDataArray[x + 1, y - 1].getCurrentPiece().team == Team.AI)
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardTaken)); ;
+            }
+
+            //Check for en passen
+            if (pawnDoubleMoveLastTurn()                                                    //Last move enemy pawn double moved from start
+                && tile.getXPosition() == lastMove.endTile.getXPosition()                   //Make sure pawns are on the same row
+                && Mathf.Abs(tile.getYPosition() - lastMove.endTile.getYPosition()) == 1)    //Make sure pawns are beside each other
+            {
+                options.Add(new MovementData(tile, 
+                    tileDataArray[tile.getXPosition() + 1, lastMove.endTile.getYPosition()],
+                    StateChange.EnPassen, tileDataArray[lastMove.endTile.getXPosition(), 
+                    lastMove.endTile.getYPosition()]));
             }
         }
         //Moving AI pieces
         else
         {
-            Debug.Log("ON AI TEAM");
             //Pawn at starting position
             if (x == 6)
             {
                 if (tileDataArray[5, y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[5, y]);
+                    options.Add(new MovementData(tile, tileDataArray[5, y], StateChange.StandardMovement));
                 if (tileDataArray[5, y].getCurrentPiece() == null && tileDataArray[4, y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[4, y]);
+                    options.Add(new MovementData(tile, tileDataArray[4, y], StateChange.StandardMovement));
             }
             //Otherwise pawn out on board
             else
             {
                 if (tileDataArray[x - 1, y].getCurrentPiece() == null)
-                    options.Add(tileDataArray[x - 1, y]);
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
             }
 
             //Check for side motion
@@ -280,10 +297,17 @@ public class PossiblePositionManager : MonoBehaviour {
             {
                 //Check if we can attack on the left
                 if (y < 7 && tileDataArray[x - 1, y + 1].getCurrentPiece() != null && tileDataArray[x - 1, y + 1].getCurrentPiece().team == 0)
-                    options.Add(tileDataArray[x - 1, y + 1]);
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardTaken));
                 //Check if we can attack on the right
                 if (y > 0 && tileDataArray[x - 1, y - 1].getCurrentPiece() != null && tileDataArray[x - 1, y - 1].getCurrentPiece().team == 0)
-                    options.Add(tileDataArray[x - 1, y - 1]);
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardTaken));
+            }
+
+            //Check for en passen
+            if (pawnDoubleMoveLastTurn()
+                && tile.getXPosition() == lastMove.endTile.getXPosition())
+            {
+
             }
         }
 
@@ -617,6 +641,19 @@ public class PossiblePositionManager : MonoBehaviour {
         else
             return null;
     }
+
+    /// <summary>
+    /// Returns if the last move made was by a pawn who moved two spaces
+    /// </summary>
+    /// <returns>Bool of case</returns>
+    private bool pawnDoubleMoveLastTurn ()
+    {
+        //Make sure we're checking a pawn
+        if (lastMove.movementType == StateChange.EnPassen) return false;
+        if (lastMove.startTile.getCurrentPiece().type != PieceTypes.Pawn) return false;
+
+        return Mathf.Abs(lastMove.startTile.getXPosition() - lastMove.endTile.getXPosition()) == 2;
+    }
     #endregion
 }
 
@@ -629,9 +666,12 @@ internal struct MovementData
     internal Tile startTile;                //Tile provided for intial movement
     internal Tile endTile;                  //Tile option presented in the set
 
-    internal StateChange movementType;       //Possible types of move (special and standard)
+    internal StateChange movementType;      //Possible types of move (special and standard)
     internal Tile secondaryChangeStart;     //Secondary piece start position
     internal Tile secondaryChangeEnd;       //Secondary piece end position
+
+    internal bool pawnUpgraded;             //Was the pawn upgraded?
+    internal Piece newPiece;                //What unit is the pawn now?
 
     /// <summary>
     /// Full Constructor
@@ -641,14 +681,15 @@ internal struct MovementData
     /// <param name="state">Type of movement being represented</param>
     /// <param name="s2">Secondary start Tile of piece to move</param>
     /// <param name="e2">Secondary end Tile of piece to move</param>
-    internal MovementData (Tile s1, Tile e1, StateChange state, Tile s2, Tile e2)
+    internal MovementData (Tile s1, Tile e1, StateChange state, Tile s2, Tile e2, bool upgraded, Piece p)
     {
         startTile = s1; endTile = e1;
         movementType = state; secondaryChangeStart = s2; secondaryChangeEnd = e2;
+        pawnUpgraded = upgraded; newPiece = p;
     }
 
     /// <summary>
-    /// Partial Constructor - Used only for standard moves
+    /// Standard Movement Constructor
     /// </summary>
     /// <param name="s1"></param>
     /// <param name="e1"></param>
@@ -658,5 +699,49 @@ internal struct MovementData
         startTile = s1; endTile = e1;
         movementType = state;
         secondaryChangeStart = null; secondaryChangeEnd = null;
+        pawnUpgraded = false; newPiece = null;
+    }
+
+    /// <summary>
+    /// Pawn Upgrade Constructor
+    /// </summary>
+    /// <param name="s1">Tile pawn started on</param>
+    /// <param name="e1">Tile pawn upgrading on</param>
+    /// <param name="upgraded">If the pawn upgraded</param>
+    /// <param name="p">Piece the pawn will become</param>
+    internal MovementData (Tile s1, Tile e1, bool upgraded, Piece p)
+    {
+        startTile = s1; endTile = e1; movementType = StateChange.Upgrade;
+        secondaryChangeStart = null; secondaryChangeEnd = null;
+        pawnUpgraded = upgraded; newPiece = p;
+    }
+
+    /// <summary>
+    /// En Passen Constructor
+    /// </summary>
+    /// <param name="s1">Attack pawn start tile</param>
+    /// <param name="e1">Attack pawm end tile</param>
+    /// <param name="change">Statechange type</param>
+    /// <param name="s2">pawn to remove</param>
+    internal MovementData (Tile s1, Tile e1, StateChange change, Tile s2)
+    {
+        startTile = s1; endTile = e1; movementType = change;
+        secondaryChangeStart = s2; secondaryChangeEnd = null;
+        pawnUpgraded = false; newPiece = null;
+    }
+
+    /// <summary>
+    /// Castling Constructor
+    /// </summary>
+    /// <param name="s1">King start tile</param>
+    /// <param name="e1">King end tile</param>
+    /// <param name="change">Castling Change</param>
+    /// <param name="s2">Rook start tile</param>
+    /// <param name="e2">Rook end tile</param>
+    internal MovementData (Tile s1, Tile e1, StateChange change, Tile s2, Tile e2)
+    {
+        startTile = s1; endTile = e1; movementType = change;
+        secondaryChangeStart = s2; secondaryChangeEnd = e2;
+        pawnUpgraded = false; newPiece = null;
     }
 }

@@ -6,12 +6,12 @@ public class Piece : MonoBehaviour {
 
     internal Vector3 targetPosition;
     internal PieceTypes type;
-    internal int team;
+    internal Team team;
 
     /// <summary>
     /// Constructor
     /// </summary>
-    internal void initialize (Vector3 startPosition, PieceTypes type, int team)
+    internal void initialize (Vector3 startPosition, PieceTypes type, Team team)
     {
         //Save data
         transform.position = startPosition + new Vector3(0, 0.5f, 0);

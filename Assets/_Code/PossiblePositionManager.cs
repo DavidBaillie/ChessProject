@@ -5,10 +5,10 @@ using UnityEngine;
 public class PossiblePositionManager : MonoBehaviour {
 
     private bool playersTurn = true;            //Tracks if it is the AI or players turn
-    private Tile[,] currentTileData;            //Array of Tile classes representing game board
+    private Tile[,] boardTileArray;            //Array of Tile classes representing game board
 
-    private Tile currentSelectedTile;   //Data saved when the player selects a Piece/Tile to move to a new Tile
-    private List<Tile> possibleTiles;   //Possible tiles to move towards based on the currentSelectedTile
+    private Tile currentSelectedTile;           //Data saved when the player selects a Piece/Tile to move to a new Tile
+    private List<Tile> possibleTiles;           //Possible tiles to move towards based on the currentSelectedTile
 
     /// <summary>
     /// Called when the BoardPositionInitializer finishes spawning all tiles with pieces
@@ -16,17 +16,93 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="data">Array of all tiles on board</param>
     internal void  setTileDataArray (Tile[,] data)
     {
-        currentTileData = data;
+        boardTileArray = data;
 
         GetComponent<AIInterfaceManager>().initialize(this);
     }
 
     /// <summary>
-    /// Called to get the current array of tiles on the board
+    /// Called to instruct a a Piece to move from one Tile to another
     /// </summary>
-    /// <returns></returns>
-    internal Tile[,] getTileArray () { return currentTileData; }
+    /// <param name="start">Tile the Piece is starting on</param>
+    /// <param name="end">Tile for the Piece to move to</param>
+    internal void moveToTile(MovementData data)
+    {
+        //Update who's turn it is
+        if (data.startTile.getCurrentPiece().team == Team.Player) playersTurn = false;
+        else playersTurn = true;
 
+        //Move pieces according to parameter data
+        Tile start, end, startTwo, endTwo;
+        switch (data.movementType)
+        {
+            //Standard Movement cases
+            case StateChange.StandardMovement:
+            case StateChange.StandardTaken:
+                //Remove piece taken if any and grab local tiles being referenced
+                removePiece(data.endTile);
+                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
+                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
+
+                //Move the Piece to the new Tile
+                start.getCurrentPiece().targetPosition = end.gameObject.transform.position + (Vector3.up / 2);
+                end.setCurrentPiece(start.getCurrentPiece());
+                start.setCurrentPiece(null);
+                break;
+            //En Passen movement 
+            case StateChange.EnPassen:
+                //Grab start and end data
+                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
+                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
+                startTwo = boardTileArray[data.secondaryChangeStart.getXPosition(),
+                    data.secondaryChangeStart.getYPosition()];
+
+                //Remove other pawn
+                removePiece(startTwo);
+
+                //Move my pawn
+                start.getCurrentPiece().targetPosition = end.gameObject.transform.position + (Vector3.up / 2);
+                end.setCurrentPiece(start.getCurrentPiece());
+                start.setCurrentPiece(null);
+                break;
+            //Castling movement
+            case StateChange.Castling:
+                //Grab start and end data
+                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
+                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
+                startTwo = boardTileArray[data.secondaryChangeStart.getXPosition(),
+                    data.secondaryChangeStart.getYPosition()];
+                endTwo = boardTileArray[data.secondaryChangeEnd.getXPosition(),
+                    data.secondaryChangeEnd.getYPosition()];
+
+                //Move King
+                start.getCurrentPiece().targetPosition = end.gameObject.transform.position + (Vector3.up / 2);
+                end.setCurrentPiece(start.getCurrentPiece());
+                start.setCurrentPiece(null);
+
+                //Move Rook
+                startTwo.getCurrentPiece().targetPosition =
+                    endTwo.gameObject.transform.position + (Vector3.up / 2);
+                endTwo.setCurrentPiece(startTwo.getCurrentPiece());
+                startTwo.setCurrentPiece(null);
+                break;
+        }
+    }
+
+    /// <summary>
+    /// Called when a Piece beeds to be removed from the board after being "taken"
+    /// </summary>
+    /// <param name="tile">Tile holding Piece class to remove</param>
+    private void removePiece (Tile tile)
+    {
+        if (tile.getCurrentPiece() == null) return;
+
+        //TODO - Move piece off board instead of killing it !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        Destroy(tile.getCurrentPiece().gameObject, 0.5f);
+        tile.setCurrentPiece(null);
+    }
+
+    #region Player Turn
     /// <summary>
     /// Returns if it is the players turn currently
     /// </summary>
@@ -38,48 +114,14 @@ public class PossiblePositionManager : MonoBehaviour {
     /// </summary>
     /// <param name="turn">Boolean to set playersTurn to</param>
     internal void setIsPlayerTurn (bool turn) { playersTurn = turn; }
+    #endregion
 
+    #region Internal Getter Methods
     /// <summary>
-    /// Called to instruct a a Piece to move from one Tile to another
+    /// Called to get the current array of tiles on the board
     /// </summary>
-    /// <param name="start">Tile the Piece is starting on</param>
-    /// <param name="end">Tile for the Piece to move to</param>
-    internal void moveToTile (Tile start, Tile end, int team)
-    {
-        //Update who's turn it is
-        if (team == 0) playersTurn = false;
-        else playersTurn = true;
-
-        //Kill any pieces we take
-        if (end.getCurrentPiece() != null)
-        {
-            Destroy(end.getCurrentPiece().gameObject, 0.5f);
-            end.setCurrentPiece(null);
-        }
-
-        //Instruct pieces to move
-        start.getCurrentPiece().targetPosition = end.gameObject.transform.position + (Vector3.up/2);
-        end.setCurrentPiece(start.getCurrentPiece());
-        start.setCurrentPiece(null);
-    }
-
-
-    /*
-    /// <summary>
-    /// Given a tile the method will return all possible tiles the associated Piece can move to
-    /// </summary>
-    /// <param name="tile"></param>
     /// <returns></returns>
-    internal List<Tile> getPossibleTileOptions (Tile tile)
-    {
-        //Return the math for player movements
-        if (tile.getCurrentPiece().team == 0)
-            return getPlayerPossibleTiles(tile.getXPosition(), tile.getYPosition(), tile.getCurrentPiece().type);
-        //Otherwise do the math for AI movement
-        else
-            return getAIPossibleTiles(tile.getXPosition(), tile.getYPosition(), tile.getCurrentPiece().type);
-    }
-    */
+    internal Tile[,] getTileArray() { return boardTileArray; }
 
     /// <summary>
     /// Returns the possible Tiles the provided Piece can move to using the current world Tiles
@@ -93,17 +135,17 @@ public class PossiblePositionManager : MonoBehaviour {
         switch (type)
         {
             case PieceTypes.Pawn:
-                return getPawnTiles(x, y, 0, currentTileData);
+                return getPawnTiles(x, y, 0, boardTileArray);
             case PieceTypes.Rook:
-                return getRookTiles(x, y, 0, currentTileData);
+                return getRookTiles(x, y, 0, boardTileArray);
             case PieceTypes.Knight:
-                return getKnightTiles(x, y, 0, currentTileData);
+                return getKnightTiles(x, y, 0, boardTileArray);
             case PieceTypes.Bishop:
-                return getBishopTiles(x, y, 0, currentTileData);
+                return getBishopTiles(x, y, 0, boardTileArray);
             case PieceTypes.Queen:
-                return getQueenTiles(x, y, 0, currentTileData);
+                return getQueenTiles(x, y, 0, boardTileArray);
             case PieceTypes.King:
-                return getKingTiles(x, y, 0, currentTileData);
+                return getKingTiles(x, y, 0, boardTileArray);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
                     "for unit " + type + " :: " + gameObject.name);
@@ -170,9 +212,9 @@ public class PossiblePositionManager : MonoBehaviour {
                 return new List<Tile>();
         }
     }
+    #endregion
 
-
-
+    #region Get Piece Options
     /// <summary>
     /// Given the pawn's team, this method will find all valid movement positions for the piece
     /// </summary>
@@ -574,5 +616,47 @@ public class PossiblePositionManager : MonoBehaviour {
             return tileDataArray[x, y];
         else
             return null;
+    }
+    #endregion
+}
+
+/// <summary>
+/// Data container struct for holding all relevant information about a piece moving
+/// on the chess board.
+/// </summary>
+internal struct MovementData
+{
+    internal Tile startTile;                //Tile provided for intial movement
+    internal Tile endTile;                  //Tile option presented in the set
+
+    internal StateChange movementType;       //Possible types of move (special and standard)
+    internal Tile secondaryChangeStart;     //Secondary piece start position
+    internal Tile secondaryChangeEnd;       //Secondary piece end position
+
+    /// <summary>
+    /// Full Constructor
+    /// </summary>
+    /// <param name="s1">Start Tile of Piece to Move</param>
+    /// <param name="e1">End Tile of Piece to move</param>
+    /// <param name="state">Type of movement being represented</param>
+    /// <param name="s2">Secondary start Tile of piece to move</param>
+    /// <param name="e2">Secondary end Tile of piece to move</param>
+    internal MovementData (Tile s1, Tile e1, StateChange state, Tile s2, Tile e2)
+    {
+        startTile = s1; endTile = e1;
+        movementType = state; secondaryChangeStart = s2; secondaryChangeEnd = e2;
+    }
+
+    /// <summary>
+    /// Partial Constructor - Used only for standard moves
+    /// </summary>
+    /// <param name="s1"></param>
+    /// <param name="e1"></param>
+    /// <param name="state"></param>
+    internal MovementData (Tile s1, Tile e1, StateChange state)
+    {
+        startTile = s1; endTile = e1;
+        movementType = state;
+        secondaryChangeStart = null; secondaryChangeEnd = null;
     }
 }

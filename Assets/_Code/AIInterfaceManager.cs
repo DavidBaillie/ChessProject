@@ -6,7 +6,7 @@ using System.Threading;
 public class AIInterfaceManager : MonoBehaviour {
 
     private PossiblePositionManager positionManager;
-    private TileData[,] cleanedBoardArray;
+    private MovementData finalChoice;
 
     /// <summary>
     /// Main thread that spins up and controls AI with interactions back to main Unity Systems
@@ -21,11 +21,9 @@ public class AIInterfaceManager : MonoBehaviour {
             if (parent.positionManager.isPlayersTurn() == false)
             {
                 //Spin up AI
-                parent.updateBoardStatus();
                 Main m = new Main(parent);
 
-                //Respond with choice of piece to move
-                parent.finishAITurn(m.getFinalData());
+                parent.finishAITurn();
             }
         }
     }
@@ -38,7 +36,7 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         //Save positions manager
         this.positionManager = positionManager;
-        updateBoardStatus();
+        //updateBoardStatus();
 
         //Spin up thread;
         Thread t = new Thread(() => main_AI_Thread(this));
@@ -53,7 +51,7 @@ public class AIInterfaceManager : MonoBehaviour {
     /// <param name="y1">Piece Y Coordinate</param>
     /// <param name="x2">Move to X Coordinate</param>
     /// <param name="y2">Move to Y Coordinate</param>
-    internal void finishAITurn (FinalData finalData)
+    internal void finishAITurn ()
     {
         positionManager.setIsPlayerTurn(true);
 
@@ -64,49 +62,29 @@ public class AIInterfaceManager : MonoBehaviour {
     }
 
     /// <summary>
-    /// Called to set up a local copy of the game board. Assumed to be called 
-    /// before the start of the AI run to make sure board data is current.
+    /// Returns the current Tile[,] representing the board the player is seeing. Provided board is
+    /// a unique object array separate from the one tracked by the PossiblePositionManager.
     /// </summary>
-    internal void updateBoardStatus ()
-    {
-        cleanedBoardArray = new TileData[8, 8];
-        for (int x = 0; x < 8; x++)
-        {
-            for (int y = 0; y < 8; y++)
-            {
-                //Grab full tile data
-                Tile t = positionManager.getTileArray()[x, y];
-
-                //Parse data for empty tile
-                if (t.getCurrentPiece() == null)
-                    cleanedBoardArray[x, y] = new TileData(t.getXPosition(), t.getYPosition());
-                //Otherwise we have a piece on this tile
-                else
-                    cleanedBoardArray[x, y] = new TileData(t.getXPosition(), t.getYPosition(), t.getCurrentPiece().type,
-                        t.getCurrentPiece().team);
-            }
-        }
-    }
+    internal Tile[,] AC_getCurrentBoard () { return AC_getCopyOfBoard(positionManager.getTileArray()); }
 
     /// <summary>
-    /// Returns an array of TileData representing the current board in the game world.
+    /// Returns a copy of the provided 2D Tile array. Used to make sure a "board" can be passed
+    /// between recursive steps without sharing a memory address. 
     /// </summary>
-    internal TileData[,] getCurrentBoard () { return cleanedBoardArray; }
-
-    /// <summary>
-    /// Returns a copy of the provided TileData array to prevent accidental pointer links when recursing.
-    /// </summary>
-    /// <param name="data">Array to be copied</param>
-    /// <returns>2D TileData array</returns>
-    internal TileData[,] getCopyOfBoard (TileData[,] data)
+    /// <param name="data">2D Tile array to be copied</param>
+    /// <returns>New 2D Tile array with a new memory address.</returns>
+    internal Tile[,] AC_getCopyOfBoard (Tile[,] data)
     {
-        TileData[,] copy = new TileData[8, 8];
+        Tile[,] copy = new Tile[8, 8];
 
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
             {
-                copy[x, y] = new TileData(data[x, y].xCoordinate, data[x, y].yCoordinate, data[x, y].type, t.getCurrentPiece().team);
+                Tile t = new Tile();
+                t.initialize(data[x, y].getCurrentPiece(), data[x, y].getXPosition(), 
+                    data[x, y].getYPosition(), data[x, y].getTileObject());
+                copy[x, y] = t;
             }
         }
 
@@ -114,53 +92,117 @@ public class AIInterfaceManager : MonoBehaviour {
     }
 
     /// <summary>
-    /// Called to return all possible TileData positions a given unit on a TileData can move to.
-    /// Hackily converts from TileData objects to Tile's and then back again to re-use previous code for
-    /// determine available movement options for a piece.
+    /// Used by the AI. Provided a version of the game board, the method will return a new
+    /// copy of the board with the pieces moved accoridng to the MovementData struct.
     /// </summary>
-    /// <param name="xCoordinate">X Coordinate of TileData</param>
-    /// <param name="yCoordinate">Y Coordinate of TileData</param>
-    /// <param name="inputArray">Array of TileData to be used as the current board</param>
+    /// <param name="data">MovementData holding movement instructions</param>
+    /// <param name="arrayIn">Current version game board to be modified</param>
     /// <returns></returns>
-    internal List<TileData> getMovementOptions (int xCoordinate, int yCoordinate, TileData[,] inputArray)
+    internal Tile[,] AC_getBoardAfterMovement (MovementData data, Tile[,] arrayIn)
     {
-        //Convert back to Tile array
-        Tile[,] convertedArray = new Tile[8, 8];
-        for (int x = 0; x < 8; x++)
-        {
-            for (int y = 0; y < 8; y++)
-            {
-                Tile t = new Tile();
-                t.localLocationData = new BoardLocation(null, x, y);
-                t.currentPiece = new Piece();
-                t.currentPiece.type = inputArray[x, y].type;
-                t.currentPiece.team = inputArray[x, y].team;
+        //Build copy of board to prevent overwrite
+        Tile[,] boardTileArray = AC_getCopyOfBoard(arrayIn);
 
-            }
+        //Move pieces according to parameter data
+        Tile start, end, startTwo, endTwo;
+        switch (data.movementType)
+        {
+            //Standard Movement cases
+            case StateChange.StandardMovement:
+            case StateChange.StandardTaken:
+                //Remove piece taken if any and grab local tiles being referenced
+                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
+                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
+
+                //Move the Piece to the new Tile
+                end.setCurrentPiece(start.getCurrentPiece());
+                start.setCurrentPiece(null);
+                break;
+            //En Passen movement 
+            case StateChange.EnPassen:
+                //Grab start and end data
+                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
+                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
+                startTwo = boardTileArray[data.secondaryChangeStart.getXPosition(),
+                    data.secondaryChangeStart.getYPosition()];
+
+                //Remove other pawn
+                startTwo.setCurrentPiece(null);
+
+                //Move my pawn
+                end.setCurrentPiece(start.getCurrentPiece());
+                start.setCurrentPiece(null);
+                break;
+            //Castling movement
+            case StateChange.Castling:
+                //Grab start and end data
+                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
+                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
+                startTwo = boardTileArray[data.secondaryChangeStart.getXPosition(),
+                    data.secondaryChangeStart.getYPosition()];
+                endTwo = boardTileArray[data.secondaryChangeEnd.getXPosition(),
+                    data.secondaryChangeEnd.getYPosition()];
+
+                //Move King
+                end.setCurrentPiece(start.getCurrentPiece());
+                start.setCurrentPiece(null);
+
+                //Move Rook
+                endTwo.setCurrentPiece(startTwo.getCurrentPiece());
+                startTwo.setCurrentPiece(null);
+                break;
         }
 
+        //Return new board with pieces moved
+        return boardTileArray;
+    }
+
+    /// <summary>
+    /// Provided a Tile to move and the current version of the chess board, this 
+    /// method will return a List of all Tile's the Piece on the provided Tile can move to.
+    /// </summary>
+    /// <param name="tile">Tile housing the Piece to move</param>
+    /// <param name="inputArray">2D Tile array of the current board configuration</param>
+    /// <returns>List<Tile> of all Tiles the piece can move to</Tile></returns>
+    internal List<MovementData> AC_getMovementOptions (Tile tile, Tile[,] inputArray)
+    {
         //Get possible movement options
         List<Tile> options;
-        if (inputArray[xCoordinate, yCoordinate].team == 0)
+        if (tile.getCurrentPiece().team == Team.Player)
         {
-            options = positionManager.getPlayerPossibleTiles(xCoordinate, yCoordinate, inputArray[xCoordinate, yCoordinate].type, convertedArray);
+            //options = positionManager.getPlayerPossibleTiles(xCoordinate, yCoordinate, inputArray[xCoordinate, yCoordinate].type, convertedArray);
+            options = positionManager.getPlayerPossibleTiles(tile.getXPosition(), tile.getYPosition(), tile.getCurrentPiece().type, inputArray);
         }
         else
         {
-            options = positionManager.getAIPossibleTiles(xCoordinate, yCoordinate, inputArray[xCoordinate, yCoordinate].type, convertedArray);
+            //options = positionManager.getAIPossibleTiles(xCoordinate, yCoordinate, inputArray[xCoordinate, yCoordinate].type, convertedArray);
+            options = positionManager.getAIPossibleTiles(tile.getXPosition(), tile.getYPosition(), tile.getCurrentPiece().type, inputArray);
         }
 
-        //Add returned Tile's to List for AI to read - convert back to TileData objects
-        List<TileData> availableTiles = new List<TileData>();
-        foreach (Tile t in options)
-        {
-            availableTiles.Add(inputArray[t.getXPosition(), t.getYPosition()]);
-        }
+        return options;
+    }
 
-        return availableTiles;
+    /// <summary>
+    /// Returns the score of a board provided a version of the board
+    /// </summary>
+    /// <param name="inputArray">2D Tile array to score</param>
+    /// <returns>Integer score of board</returns>
+    internal int AC_getScoreOfBoard (Tile[,] inputArray)
+    {
+        return 0;
+    }
+
+    /// <summary>
+    /// Called by the AI when a choice of movement has been made
+    /// </summary>
+    /// <param name="data">MovementData struct holding choice</param>
+    internal void AC_submitChoice (MovementData data)
+    {
+        finalChoice = data;
     }
 }
 
+/*
 /// <summary>
 /// Custom class dedicated to AI class interactions with game board
 /// </summary>
@@ -192,3 +234,4 @@ internal class TileData
         type = PieceTypes.None;
     }
 }
+*/  //Old Code

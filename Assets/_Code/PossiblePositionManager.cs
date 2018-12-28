@@ -325,10 +325,12 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Rook</param>
     /// <param name="team">Team of Rook</param>
     /// <returns>List of possible Tiles to move to</returns>
-    private List<Tile> getRookTiles (int x, int y, int team, Tile[,] tileDataArray)
+    private List<MovementData> getRookTiles (Tile tile, Tile[,] tileDataArray)
     {
-        Debug.Log("Running Rook Check!");
-        List<Tile> options = new List<Tile>();
+        List<MovementData> options = new List<MovementData>();
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+        Team team = tile.getCurrentPiece().team;
 
         //Iterate along positive X
         for (int i = x + 1; i < 8; i++)
@@ -337,7 +339,7 @@ public class PossiblePositionManager : MonoBehaviour {
             if (tileDataArray[i, y].getCurrentPiece() == null)
             {
                 //Add it
-                options.Add(tileDataArray[i, y]);
+                options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardMovement));
             }
             //Otherwise we found a tile
             else
@@ -346,7 +348,7 @@ public class PossiblePositionManager : MonoBehaviour {
                 if (tileDataArray[i, y].getCurrentPiece().team != team)
                 {
                     //We can take that unit
-                    options.Add(tileDataArray[i, y]);
+                    options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardTaken));
                 }
 
                 //Can't grab Tiles past another unit
@@ -361,7 +363,7 @@ public class PossiblePositionManager : MonoBehaviour {
             if (tileDataArray[i, y].getCurrentPiece() == null)
             {
                 //Add it
-                options.Add(tileDataArray[i, y]);
+                options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardMovement));
             }
             //Otherwise we found a tile
             else
@@ -370,7 +372,7 @@ public class PossiblePositionManager : MonoBehaviour {
                 if (tileDataArray[i, y].getCurrentPiece().team != team)
                 {
                     //We can take that unit
-                    options.Add(tileDataArray[i, y]);
+                    options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardTaken));
                 }
 
                 //Can't grab Tiles past another unit
@@ -385,7 +387,7 @@ public class PossiblePositionManager : MonoBehaviour {
             if (tileDataArray[x, i].getCurrentPiece() == null)
             {
                 //Add it
-                options.Add(tileDataArray[x, i]);
+                options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardMovement));
             }
             //Otherwise we found a tile
             else
@@ -394,7 +396,7 @@ public class PossiblePositionManager : MonoBehaviour {
                 if (tileDataArray[x, i].getCurrentPiece().team != team)
                 {
                     //We can take that unit
-                    options.Add(tileDataArray[x, i]);
+                    options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardTaken));
                 }
 
                 //Can't grab Tiles past another unit
@@ -409,7 +411,7 @@ public class PossiblePositionManager : MonoBehaviour {
             if (tileDataArray[x, i].getCurrentPiece() == null)
             {
                 //Add it
-                options.Add(tileDataArray[x, i]);
+                options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardMovement));
             }
             //Otherwise we found a tile
             else
@@ -418,7 +420,7 @@ public class PossiblePositionManager : MonoBehaviour {
                 if (tileDataArray[x, i].getCurrentPiece().team != team)
                 {
                     //We can take that unit
-                    options.Add(tileDataArray[x, i]);
+                    options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardTaken));
                 }
 
                 //Can't grab Tiles past another unit

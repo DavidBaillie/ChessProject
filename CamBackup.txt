@@ -1,0 +1,58 @@
+private MovementData searchAlphaBeta(Tile[,] boardCopy) {
+		List<Choice> allChoices = new List<Choice>(); // create a list of choices with their associated values
+		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a tile list of pieces
+			if (tiles.getCurrentPiece().team == Team.Player) continue; // if player team, skip and iterate again
+			// should create a wrapper class to hold a choice (tiles) and the value associated with it
+			int value = maxValue(boardCopy, int.MinValue, int.MaxValue, 12); //TODO: replace 12 with user supplied depth parameter. This is temporarily hard coded
+			Choice option = new Choice(value, );
+			allChoices.Add(option); // how do I specify a movement choice
+		}
+		int bestValIndex = findBest(allChoices);// should return the best value
+
+		//allChoices.Sort(); // if I cannot simply choose the index of the best value, then sort first (based on value variable) and return first
+		//or the pseudocode below
+		//WrapperClass best;
+		//foreach (WrapperClass c in list) {
+			//if (c.value > best.value;
+			//best = c;
+		//}
+		MovementData bestChoice = allChoices[0].bestMove; // just getting the best choice based off of the sorting
+						   //needs to choose an action in successor state with value above ... ?
+		return bestChoice; //return choice with highest value
+	}
+
+// This method returns the max value of the next state
+	// I should create a method which calls this method to start.  Calling method will iterate over every peice currently on AI-team board and call)
+	private int maxValue(Tile[,] boardCopy, int alpha, int beta, int cutOff){
+		if (cutOff == 12){
+			return unityInterface.AC_getScoreOfBoard(boardCopy);
+		}
+
+		int currentValue = int.MinValue; // Setting current value to negative inifinity
+
+		foreach (Tile tiles in piecesList(boardCopy)) {
+			if (tiles.getCurrentPiece().team == Team.Player) continue; // if player team, skip and iterate again
+
+			//if (tiles.type == PieceTypes.Pawn && tiles.xCoordinate == 0) { // if piece is a pawn and at other end, promote it. May need to place this check elsewhere
+			//	// need to explore 2 options (knight or queen) method call!
+			//	//TODO: create a wrapper class and store promotion, coordinates of piece, coordinates where going and value returned. Not necessarily at this spot in code.
+			//	//TODO tiles.type =    this is where I choose the promotion type. 
+			//}
+
+			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+
+			foreach (MovementData choice in options) {	
+				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board
+
+				//newBoard[choice. .xCoordinate, choice.yCoordinate] = newBoard[tiles.xCoordinate, tiles.yCoordinate]; // moving piece to new position
+				//newBoard[tiles.xCoordinate, tiles.yCoordinate] = new Tile(tiles.xCoordinate, tiles.yCoordinate); // resetting tile data to remove old piece
+				int nextVal = minValue(newBoard, alpha, beta, cutOff++);
+				if (nextVal > currentValue) currentValue = nextVal;
+				if (nextVal >= beta) return currentValue; // pruning 
+				if (nextVal > alpha) alpha = nextVal;
+			}
+		}
+
+		return currentValue;
+	}
+	

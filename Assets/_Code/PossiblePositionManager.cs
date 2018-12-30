@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PossiblePositionManager : MonoBehaviour {
 
+    private AIInterfaceManager AI_Interface;
+
     private bool playersTurn = true;            //Tracks if it is the AI or players turn
     private Tile[,] boardTileArray;            //Array of Tile classes representing game board
 
@@ -20,7 +22,9 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         boardTileArray = data;
 
-        GetComponent<AIInterfaceManager>().initialize(this);
+
+        AI_Interface = GetComponent<AIInterfaceManager>();
+        AI_Interface.initialize(this);
     }
 
     /// <summary>
@@ -438,39 +442,51 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Knight</param>
     /// <param name="team">Team of Knight</param>
     /// <returns>List of Tiles</returns>
-    private List<Tile> getKnightTiles (int x, int y, int team, Tile[,] tileDataArray)
+    private List<MovementData> getKnightTiles (Tile tile, Tile[,] tileDataArray)
     {
-        Debug.Log("Running Knight Check!");
-        List<Tile> options = new List<Tile>();
+        List<MovementData> options = new List<MovementData>();
+
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+        Team team = tile.getCurrentPiece().team;
+
         Tile t;
 
         //Check knight position 2/1
         t = positionHelper(x + 2, y + 1, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x+2,y+1]);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x + 2, y + 1], StateChange.StandardTaken));
         //Check knight position 2/-1
         t = positionHelper(x + 2, y - 1, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x + 2, y - 1]);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x + 2, y - 1], StateChange.StandardTaken));
 
         //Check knight position 1/2
         t = positionHelper(x + 1, y + 2, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x + 1, y + 2]);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x + 1, y + 2], StateChange.StandardTaken));
         //Check knight position -1/2
         t = positionHelper(x - 1, y + 2, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x - 1, y + 2]);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x - 1, y + 2], StateChange.StandardTaken));
 
         //Check knight position -2/1
         t = positionHelper(x - 2, y + 1, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x - 2, y + 1]);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x - 2, y + 1], StateChange.StandardTaken));
         //Check knight position -2/-1
         t = positionHelper(x -2, y - 1, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x - 2, y - 1]);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x - 2, y - 1], StateChange.StandardTaken));
 
         //Check knight position 1/-2
         t = positionHelper(x + 1, y - 2, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x + 1, y - 2]);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x + 1, y - 2], StateChange.StandardTaken));
         //Check knight position -1/-2
         t = positionHelper(x - 1, y - 2, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x - 1, y - 2]);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x - 1, y - 2], StateChange.StandardTaken));
 
         return options;
     }
@@ -482,23 +498,28 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Bishop</param>
     /// <param name="team">Team of Bishop</param>
     /// <returns>List of Tiles the Bishop can move to</returns>
-    private List<Tile> getBishopTiles (int x, int y, int team, Tile[,] tileDataArray)
+    private List<MovementData> getBishopTiles (Tile tile, Tile[,] tileDataArray)
     {
-        Debug.Log("Running Bishop Check!");
-        List<Tile> options = new List<Tile>();
+        List<MovementData> options = new List<MovementData>();
+
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+        Team team = tile.getCurrentPiece().team;
 
         //Check x and y in +/+ direction
         for (int i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++)
         {
+            //Empty space to move to
             if (tileDataArray[i, j].getCurrentPiece() == null)
             {
-                options.Add(tileDataArray[i, j]);
+                options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
             }
+            //otherwise there's a piece in the way
             else
             {
                 if (tileDataArray[i, j].getCurrentPiece().team != team)
                 {
-                    options.Add(tileDataArray[i, j]);
+                    options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
                 }
 
                 break;
@@ -508,15 +529,17 @@ public class PossiblePositionManager : MonoBehaviour {
         //Check x and y in -/- direction
         for (int i = x - 1, j = y - 1; i >= 0 && j >= 0; i--, j--)
         {
+            //Empty space to move to
             if (tileDataArray[i, j].getCurrentPiece() == null)
             {
-                options.Add(tileDataArray[i, j]);
+                options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
             }
+            //otherwise there's a piece in the way
             else
             {
                 if (tileDataArray[i, j].getCurrentPiece().team != team)
                 {
-                    options.Add(tileDataArray[i, j]);
+                    options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
                 }
 
                 break;
@@ -526,15 +549,17 @@ public class PossiblePositionManager : MonoBehaviour {
         //Check x and y in +/- direction
         for (int i = x + 1, j = y - 1; i < 8 && j >= 0; i++, j--)
         {
+            //Empty space to move to
             if (tileDataArray[i, j].getCurrentPiece() == null)
             {
-                options.Add(tileDataArray[i, j]);
+                options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
             }
+            //otherwise there's a piece in the way
             else
             {
                 if (tileDataArray[i, j].getCurrentPiece().team != team)
                 {
-                    options.Add(tileDataArray[i, j]);
+                    options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
                 }
 
                 break;
@@ -544,15 +569,17 @@ public class PossiblePositionManager : MonoBehaviour {
         //Check x and y in -/+ direction
         for (int i = x - 1, j = y + 1; i >= 0 && j < 8; i--, j++)
         {
+            //Empty space to move to
             if (tileDataArray[i, j].getCurrentPiece() == null)
             {
-                options.Add(tileDataArray[i, j]);
+                options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
             }
+            //otherwise there's a piece in the way
             else
             {
                 if (tileDataArray[i, j].getCurrentPiece().team != team)
                 {
-                    options.Add(tileDataArray[i, j]);
+                    options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
                 }
 
                 break;
@@ -569,15 +596,14 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Queen</param>
     /// <param name="team">Team of Queen</param>
     /// <returns>List of Tile</returns>
-    private List<Tile> getQueenTiles (int x, int y, int team, Tile[,] tileDataArray)
+    private List<MovementData> getQueenTiles (Tile tile, Tile[,] tileDataArray)
     {
-        Debug.Log("Running Queen Check!");
-        List<Tile> options = new List<Tile>();
+        List<MovementData> options = new List<MovementData>();
 
         //Get rook movement tiles
-        options = getRookTiles(x, y, team, tileDataArray);
+        options = getRookTiles(tile, tileDataArray);
         //Add bishop movement tiles
-        options.AddRange(getBishopTiles(x, y, team, tileDataArray));
+        options.AddRange(getBishopTiles(tile, tileDataArray));
 
         return options;
     }
@@ -589,15 +615,22 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of King</param>
     /// <param name="team">Team of King</param>
     /// <returns>List of Tiles</returns>
-    private List<Tile> getKingTiles (int x, int y, int team, Tile[,] tileDataArray)
+    private List<MovementData> getKingTiles (Tile tile, Tile[,] tileDataArray)
     {
-        Debug.Log("Running King Check!");
-        List<Tile> options = new List<Tile>();
+        List<MovementData> options = new List<MovementData>();
         Tile t;
+
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+        Team team = tile.getCurrentPiece().team;
 
         //Check position 1/1
         t = positionHelper(x + 1, y + 1, team, tileDataArray);
-        if (t != null) options.Add(tileDataArray[x + 1, y + 1]);
+        if (t != null)
+            
+            
+            //options.Add(tileDataArray[x + 1, y + 1]);
+            //options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardMovement));
 
         //Check position 0/1
         t = positionHelper(x, y + 1, team, tileDataArray);
@@ -638,7 +671,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="y">Y Coordinate of Piece</param>
     /// <param name="team">Team of Piece</param>
     /// <returns>Null if invalid, Tile if valid</returns>
-    private Tile positionHelper(int x, int y, int team, Tile[,] tileDataArray)
+    private Tile positionHelper(int x, int y, Team team, Tile[,] tileDataArray)
     {
         if (x > 7 || x < 0 || y > 7 || y < 0) return null;
 
@@ -659,6 +692,59 @@ public class PossiblePositionManager : MonoBehaviour {
         if (lastMove.startTile.getCurrentPiece().type != PieceTypes.Pawn) return false;
 
         return Mathf.Abs(lastMove.startTile.getXPosition() - lastMove.endTile.getXPosition()) == 2;
+    }
+
+    /// <summary>
+    /// Returns if the King for the given team is in check for the provided board
+    /// </summary>
+    /// <param name="gameBoard">Board to check</param>
+    /// <param name="team">King's team</param>
+    /// <returns>If King is in check</returns>
+    private bool kingIsInCheck (Tile[,] gameBoard, Team team)
+    {
+        //Check king against enemy pieces
+        foreach (Tile tile in gameBoard)
+        {
+            //Only run on hostile pieces
+            if (tile.getCurrentPiece() == null) continue;
+            if (tile.getCurrentPiece().team == team) continue;
+
+            //Get Tiles the piece can move to
+            List<MovementData> options = new List<MovementData>();
+            if (tile.getCurrentPiece().team == Team.Player)
+                options = getPlayerPossibleTiles(tile, gameBoard);
+            else
+                options = getAIPossibleTiles(tile, gameBoard);
+
+            //Check for all pieces that can be taken, if one is a king then it's in check
+            foreach (MovementData movement in options)
+            {
+                if (movement.movementType == StateChange.StandardTaken)
+                {
+                    if (movement.endTile.getCurrentPiece().type == PieceTypes.King)
+                        return true;
+                }
+            }
+        }
+
+        //Default return if no pieces can attack king
+        return false;
+    }
+
+    /// <summary>
+    /// Creates a new copy of the provided board with the specified piece moved to a new tile
+    /// </summary>
+    /// <param name="start">Start Tile of Piece</param>
+    /// <param name="end">End Tile of Piece</param>
+    /// <param name="tileDataArray">Source Game Board</param>
+    /// <returns>New board with piece moved</returns>
+    private Tile[,] movePiece (Tile start, Tile end, Tile[,] tileDataArray)
+    {
+        Tile[,] newBoard = AI_Interface.AC_getCopyOfBoard(tileDataArray);
+        end.setCurrentPiece(start.getCurrentPiece());
+        start.setCurrentPiece(null);
+
+        return newBoard;
     }
     #endregion
 }

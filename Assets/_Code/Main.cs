@@ -6,8 +6,8 @@ public class Main {
 
 	//Class used to interface with Unity Code
 	private AIInterfaceManager unityInterface;
-	private int depth = 12; //user chosen parameter of depth to check against in Min & Max
-	//TODO: this is hardcoded right now, but should be user chosen
+	private int depth = 12; //TODO: this is hardcoded right now, but should be user chosen ... user chosen parameter of depth to check against in Min & Max 
+
 
 	/// <summary>
 	/// Constructor
@@ -25,13 +25,13 @@ public class Main {
 	// Methods ------------------------------------------------------------
 
 	private MovementData searchAlphaBeta(Tile[,] boardCopy) {
-		List<Choice> allChoices = new List<Choice>(); // create a list of choices with their associated values
+		List<Choice> allChoices = new List<Choice>(); // create a list of moves with their associated values
 		// for each piece on the board
-		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a tile list of pieces
-			if (tiles.getCurrentPiece().team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over black pieces
+		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a list of all pieces
+			if (tiles.getCurrentPiece().team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
 			foreach (MovementData move in options) { // for each movement option
-				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // creating a new board
+				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // create a new board with movement of piece
 				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1); // starting cutoff 1 layer down (due to making 1 decision)
 				Choice choice = new Choice(value, move); // create wrapper class holding score and decision
 				allChoices.Add(choice); // add wrapper class to a list
@@ -54,19 +54,18 @@ public class Main {
 			}
 			counter++; // need this to happen after, otherwise not 0 indexing
 		}
-		return index;
+		return index; //TODO: there is an issue here. If the list is empty, this method will return index 0, which will yield an array out of bounds. Is an empty list even possible as this means there are no more AI Pieces (which means no king which is after checkmate)?
 	}
 
 	// This method returns the max value of the next state
-	// I should create a method which calls this method to start.  Calling method will iterate over every peice currently on AI-team board and call)
 	private int maxValue(Tile[,] boardCopy, int alpha, int beta, int cutOff){
-		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree i.e. there are no more objects to search/checkmate, or even check
+		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
 		int currentValue = int.MinValue; // Setting current value to negative inifinity
 		foreach (Tile tiles in piecesList(boardCopy)) {
 			if (tiles.getCurrentPiece().team == Team.Player) continue; // if player team, skip and iterate again
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
 			foreach (MovementData choice in options) {	
-				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board
+				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board after piece move
 				int nextVal = minValue(newBoard, alpha, beta, cutOff++);
 				if (nextVal > currentValue) currentValue = nextVal;
 				if (nextVal >= beta) return currentValue; // pruning 
@@ -78,7 +77,7 @@ public class Main {
 
 	// This method returns the minimum value of the next state
 	private int minValue(Tile[,] boardCopy, int alpha, int beta, int cutOff) {
-		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree i.e. there are no more objects to search/checkmate, or even check
+		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree i.e. there are no more objects to search/checkmate, or even check (same issue as in max)
 		int currentValue = int.MaxValue; // Setting current value to positive inifinity
 		foreach (Tile tiles in piecesList(boardCopy)) {
 			if (tiles.getCurrentPiece().team == Team.AI) continue; // if AI team, skip and iterate again

@@ -147,13 +147,13 @@ public class PossiblePositionManager : MonoBehaviour {
             case PieceTypes.Rook:
                 return getRookTiles(boardTileArray[x, y], boardTileArray);
             case PieceTypes.Knight:
-                return getKnightTiles(x, y, 0, boardTileArray);
+                return getKnightTiles(boardTileArray[x, y], boardTileArray);
             case PieceTypes.Bishop:
-                return getBishopTiles(x, y, 0, boardTileArray);
+                return getBishopTiles(boardTileArray[x, y], boardTileArray);
             case PieceTypes.Queen:
-                return getQueenTiles(x, y, 0, boardTileArray);
+                return getQueenTiles(boardTileArray[x, y], boardTileArray);
             case PieceTypes.King:
-                return getKingTiles(x, y, 0, boardTileArray);
+                return getKingTiles(boardTileArray[x, y], boardTileArray);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
                     "for unit " + type + " :: " + gameObject.name);
@@ -175,15 +175,15 @@ public class PossiblePositionManager : MonoBehaviour {
             case PieceTypes.Pawn:
                 return getPawnTiles(tile, currentTiles);
             case PieceTypes.Rook:
-                return getRookTiles(x, y, 0, currentTiles);
+                return getRookTiles(tile, currentTiles);
             case PieceTypes.Knight:
-                return getKnightTiles(x, y, 0, currentTiles);
+                return getKnightTiles(tile, currentTiles);
             case PieceTypes.Bishop:
-                return getBishopTiles(x, y, 0, currentTiles);
+                return getBishopTiles(tile, currentTiles);
             case PieceTypes.Queen:
-                return getQueenTiles(x, y, 0, currentTiles);
+                return getQueenTiles(tile, currentTiles);
             case PieceTypes.King:
-                return getKingTiles(x, y, 0, currentTiles);
+                return getKingTiles(tile, currentTiles);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
                     "for unit " + tile.getCurrentPiece().type + " :: " + gameObject.name);
@@ -203,21 +203,21 @@ public class PossiblePositionManager : MonoBehaviour {
         switch (tile.getCurrentPiece().type)
         {
             case PieceTypes.Pawn:
-                return getPawnTiles(x, y, 1, currentTiles);
+                return getPawnTiles(tile, currentTiles);
             case PieceTypes.Rook:
-                return getRookTiles(x, y, 1, currentTiles);
+                return getRookTiles(tile, currentTiles);
             case PieceTypes.Knight:
-                return getKnightTiles(x, y, 1, currentTiles);
+                return getKnightTiles(tile, currentTiles);
             case PieceTypes.Bishop:
-                return getBishopTiles(x, y, 1, currentTiles);
+                return getBishopTiles(tile, currentTiles);
             case PieceTypes.Queen:
-                return getQueenTiles(x, y, 1, currentTiles);
+                return getQueenTiles(tile, currentTiles);
             case PieceTypes.King:
-                return getKingTiles(x, y, 1, currentTiles);
+                return getKingTiles(tile, currentTiles);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
-                    "for unit " + type + " :: " + gameObject.name);
-                return new List<Tile>();
+                    "for unit " + tile.getCurrentPiece().type + " :: " + gameObject.name);
+                return new List<MovementData>();
         }
     }
     #endregion
@@ -763,10 +763,7 @@ public class PossiblePositionManager : MonoBehaviour {
 
             //Get Tiles the piece can move to
             List<MovementData> options = new List<MovementData>();
-            if (tile.getCurrentPiece().team == Team.Player)
-                options = getPlayerPossibleTiles(tile, gameBoard);
-            else
-                options = getAIPossibleTiles(tile, gameBoard);
+            options = getPossibleTilesRaw(tile, gameBoard);
 
             //Check for all pieces that can be taken, if one is a king then it's in check
             foreach (MovementData movement in options)
@@ -797,6 +794,530 @@ public class PossiblePositionManager : MonoBehaviour {
         start.setCurrentPiece(null);
 
         return newBoard;
+    }
+    #endregion
+
+    #region Duplicate GetPieceTiles - Used to avoid infinite looping for checks
+    /// <summary>
+    /// Returns the possible Tiles the provided Tile Piece can move to.
+    /// </summary>
+    /// <param name="x">X position of Tile</param>
+    /// <param name="y">Y position of Tile</param>
+    /// <param name="type">Piece Type on Tile</param>
+    /// <returns></returns>
+    internal List<MovementData> getPossibleTilesRaw(Tile tile, Tile[,] currentTiles)
+    {
+        switch (tile.getCurrentPiece().type)
+        {
+            case PieceTypes.Pawn:
+                return getPawnTiles(tile, currentTiles);
+            case PieceTypes.Rook:
+                return getRookTiles(tile, currentTiles);
+            case PieceTypes.Knight:
+                return getKnightTiles(tile, currentTiles);
+            case PieceTypes.Bishop:
+                return getBishopTiles(tile, currentTiles);
+            case PieceTypes.Queen:
+                return getQueenTiles(tile, currentTiles);
+            case PieceTypes.King:
+                return getKingTiles(tile, currentTiles);
+            default:
+                Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
+                    "for unit " + tile.getCurrentPiece().type + " :: " + gameObject.name);
+                return new List<MovementData>();
+        }
+    }
+
+    /// <summary>
+    /// Given the pawn's team, this method will find all valid movement positions for the piece
+    /// </summary>
+    /// <param name="x">X Coordinate of Tile</param>
+    /// <param name="y">Y Coordinate of Tile</param>
+    /// <param name="team">Piece Team</param>
+    /// <returns>List of possible Tiles to move to</returns>
+    private List<MovementData> getPawnTilesRaw(Tile tile, Tile[,] tileDataArray)
+    {
+        List<MovementData> options = new List<MovementData>();
+        Team team = tile.getCurrentPiece().team;
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+
+
+        //Player pieces
+        if (team == Team.Player)
+        {
+            //Pawn still at starting position
+            if (x == 1)
+            {
+                if (tileDataArray[2, y].getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[2, y], StateChange.StandardMovement));
+                if (tileDataArray[2, y].getCurrentPiece() == null && tileDataArray[3, y].getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[3, y], StateChange.StandardMovement));
+            }
+            //Pawn is out on the board, check for forwards movement
+            else
+            {
+                if (tileDataArray[x + 1, y].getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
+            }
+
+            //Check for side motion
+            if (x < 7)
+            {
+                //Check if we can attack on the right
+                if (y < 7 && tileDataArray[x + 1, y + 1].getCurrentPiece() != null && tileDataArray[x + 1, y + 1].getCurrentPiece().team == Team.AI)
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardTaken));
+                //Check if we can attack on the left
+                if (y > 0 && tileDataArray[x + 1, y - 1].getCurrentPiece() != null && tileDataArray[x + 1, y - 1].getCurrentPiece().team == Team.AI)
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardTaken)); ;
+            }
+
+            //Check for en passen
+            if (pawnDoubleMoveLastTurn()                                                    //Last move enemy pawn double moved from start
+                && tile.getXPosition() == lastMove.endTile.getXPosition()                   //Make sure pawns are on the same row
+                && Mathf.Abs(tile.getYPosition() - lastMove.endTile.getYPosition()) == 1)    //Make sure pawns are beside each other
+            {
+                options.Add(new MovementData(tile,
+                    tileDataArray[tile.getXPosition() + 1, lastMove.endTile.getYPosition()],
+                    StateChange.EnPassen,
+                    tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
+            }
+        }
+        //Moving AI pieces
+        else
+        {
+            //Pawn at starting position
+            if (x == 6)
+            {
+                if (tileDataArray[5, y].getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[5, y], StateChange.StandardMovement));
+                if (tileDataArray[5, y].getCurrentPiece() == null && tileDataArray[4, y].getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[4, y], StateChange.StandardMovement));
+            }
+            //Otherwise pawn out on board
+            else
+            {
+                if (tileDataArray[x - 1, y].getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
+            }
+
+            //Check for side motion
+            if (x > 0)
+            {
+                //Check if we can attack on the left
+                if (y < 7 && tileDataArray[x - 1, y + 1].getCurrentPiece() != null && tileDataArray[x - 1, y + 1].getCurrentPiece().team == 0)
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardTaken));
+                //Check if we can attack on the right
+                if (y > 0 && tileDataArray[x - 1, y - 1].getCurrentPiece() != null && tileDataArray[x - 1, y - 1].getCurrentPiece().team == 0)
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardTaken));
+            }
+
+            //Check for en passen
+            if (pawnDoubleMoveLastTurn()
+                && tile.getXPosition() == lastMove.endTile.getXPosition()
+                && Mathf.Abs(tile.getYPosition() - lastMove.endTile.getYPosition()) == 1)
+            {
+                options.Add(new MovementData(tile,
+                    tileDataArray[tile.getXPosition() - 1, lastMove.endTile.getYPosition()],
+                    StateChange.EnPassen,
+                    tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
+            }
+        }
+
+        return options;
+    }
+
+    /// <summary>
+    /// Given a rook's team and position, this method returns all possible Tiles the piece can move to
+    /// </summary>
+    /// <param name="x">X Coordinate of Rook</param>
+    /// <param name="y">Y Coordinate of Rook</param>
+    /// <param name="team">Team of Rook</param>
+    /// <returns>List of possible Tiles to move to</returns>
+    private List<MovementData> getRookTilesRaw(Tile tile, Tile[,] tileDataArray)
+    {
+        List<MovementData> options = new List<MovementData>();
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+        Team team = tile.getCurrentPiece().team;
+
+        //Iterate along positive X
+        for (int i = x + 1; i < 8; i++)
+        {
+            //If the next in order is empty
+            if (tileDataArray[i, y].getCurrentPiece() == null)
+            {
+                //Add it
+                options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardMovement));
+            }
+            //Otherwise we found a tile
+            else
+            {
+                //If unit found is on other team
+                if (tileDataArray[i, y].getCurrentPiece().team != team)
+                {
+                    //We can take that unit
+                    options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardTaken));
+                }
+
+                //Can't grab Tiles past another unit
+                break;
+            }
+        }
+
+        //Iterate along negative X
+        for (int i = x - 1; i >= 0; i--)
+        {
+            //If the next in order is empty
+            if (tileDataArray[i, y].getCurrentPiece() == null)
+            {
+                //Add it
+                options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardMovement));
+            }
+            //Otherwise we found a tile
+            else
+            {
+                //If unit found is on other team
+                if (tileDataArray[i, y].getCurrentPiece().team != team)
+                {
+                    //We can take that unit
+                    options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardTaken));
+                }
+
+                //Can't grab Tiles past another unit
+                break;
+            }
+        }
+
+        //Iterate along positive Y
+        for (int i = y + 1; i < 8; i++)
+        {
+            //If the next in order is empty
+            if (tileDataArray[x, i].getCurrentPiece() == null)
+            {
+                //Add it
+                options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardMovement));
+            }
+            //Otherwise we found a tile
+            else
+            {
+                //If unit found is on other team
+                if (tileDataArray[x, i].getCurrentPiece().team != team)
+                {
+                    //We can take that unit
+                    options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardTaken));
+                }
+
+                //Can't grab Tiles past another unit
+                break;
+            }
+        }
+
+        //Iterate along negative Y
+        for (int i = y - 1; i >= 0; i--)
+        {
+            //If the next in order is empty
+            if (tileDataArray[x, i].getCurrentPiece() == null)
+            {
+                //Add it
+                options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardMovement));
+            }
+            //Otherwise we found a tile
+            else
+            {
+                //If unit found is on other team
+                if (tileDataArray[x, i].getCurrentPiece().team != team)
+                {
+                    //We can take that unit
+                    options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardTaken));
+                }
+
+                //Can't grab Tiles past another unit
+                break;
+            }
+        }
+
+        return options;
+    }
+
+    /// <summary>
+    /// Give a Knight's position the method will return a List of all Tiles the knight can move to.
+    /// </summary>
+    /// <param name="x">X Coordinate of Knight</param>
+    /// <param name="y">Y Coordinate of Knight</param>
+    /// <param name="team">Team of Knight</param>
+    /// <returns>List of Tiles</returns>
+    private List<MovementData> getKnightTilesRaw(Tile tile, Tile[,] tileDataArray)
+    {
+        List<MovementData> options = new List<MovementData>();
+
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+        Team team = tile.getCurrentPiece().team;
+
+        Tile t;
+
+        //Check knight position 2/1
+        t = positionHelper(x + 2, y + 1, team, tileDataArray);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x + 2, y + 1], StateChange.StandardTaken));
+        //Check knight position 2/-1
+        t = positionHelper(x + 2, y - 1, team, tileDataArray);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x + 2, y - 1], StateChange.StandardTaken));
+
+        //Check knight position 1/2
+        t = positionHelper(x + 1, y + 2, team, tileDataArray);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x + 1, y + 2], StateChange.StandardTaken));
+        //Check knight position -1/2
+        t = positionHelper(x - 1, y + 2, team, tileDataArray);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x - 1, y + 2], StateChange.StandardTaken));
+
+        //Check knight position -2/1
+        t = positionHelper(x - 2, y + 1, team, tileDataArray);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x - 2, y + 1], StateChange.StandardTaken));
+        //Check knight position -2/-1
+        t = positionHelper(x - 2, y - 1, team, tileDataArray);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x - 2, y - 1], StateChange.StandardTaken));
+
+        //Check knight position 1/-2
+        t = positionHelper(x + 1, y - 2, team, tileDataArray);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x + 1, y - 2], StateChange.StandardTaken));
+        //Check knight position -1/-2
+        t = positionHelper(x - 1, y - 2, team, tileDataArray);
+        if (t != null)
+            options.Add(new MovementData(tile, tileDataArray[x - 1, y - 2], StateChange.StandardTaken));
+
+        return options;
+    }
+
+    /// <summary>
+    /// Given a Bishops position the method will return a list of all Tiles the Bishop can move to
+    /// </summary>
+    /// <param name="x">X Coordinate of Bishop</param>
+    /// <param name="y">Y Coordinate of Bishop</param>
+    /// <param name="team">Team of Bishop</param>
+    /// <returns>List of Tiles the Bishop can move to</returns>
+    private List<MovementData> getBishopTilesRaw(Tile tile, Tile[,] tileDataArray)
+    {
+        List<MovementData> options = new List<MovementData>();
+
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+        Team team = tile.getCurrentPiece().team;
+
+        //Check x and y in +/+ direction
+        for (int i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++)
+        {
+            //Empty space to move to
+            if (tileDataArray[i, j].getCurrentPiece() == null)
+            {
+                options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
+            }
+            //otherwise there's a piece in the way
+            else
+            {
+                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                {
+                    options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
+                }
+
+                break;
+            }
+        }
+
+        //Check x and y in -/- direction
+        for (int i = x - 1, j = y - 1; i >= 0 && j >= 0; i--, j--)
+        {
+            //Empty space to move to
+            if (tileDataArray[i, j].getCurrentPiece() == null)
+            {
+                options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
+            }
+            //otherwise there's a piece in the way
+            else
+            {
+                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                {
+                    options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
+                }
+
+                break;
+            }
+        }
+
+        //Check x and y in +/- direction
+        for (int i = x + 1, j = y - 1; i < 8 && j >= 0; i++, j--)
+        {
+            //Empty space to move to
+            if (tileDataArray[i, j].getCurrentPiece() == null)
+            {
+                options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
+            }
+            //otherwise there's a piece in the way
+            else
+            {
+                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                {
+                    options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
+                }
+
+                break;
+            }
+        }
+
+        //Check x and y in -/+ direction
+        for (int i = x - 1, j = y + 1; i >= 0 && j < 8; i--, j++)
+        {
+            //Empty space to move to
+            if (tileDataArray[i, j].getCurrentPiece() == null)
+            {
+                options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
+            }
+            //otherwise there's a piece in the way
+            else
+            {
+                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                {
+                    options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
+                }
+
+                break;
+            }
+        }
+
+        return options;
+    }
+
+    /// <summary>
+    /// Given a Queen's position the method will return a list of all Tiles the piece can move to.
+    /// </summary>
+    /// <param name="x">X Coordinate of Queen</param>
+    /// <param name="y">Y Coordinate of Queen</param>
+    /// <param name="team">Team of Queen</param>
+    /// <returns>List of Tile</returns>
+    private List<MovementData> getQueenTilesRaw(Tile tile, Tile[,] tileDataArray)
+    {
+        List<MovementData> options = new List<MovementData>();
+
+        //Get rook movement tiles
+        options = getRookTiles(tile, tileDataArray);
+        //Add bishop movement tiles
+        options.AddRange(getBishopTiles(tile, tileDataArray));
+
+        return options;
+    }
+
+    /// <summary>
+    /// Given a King's position the method will return a list of all tiles the King can move to
+    /// </summary>
+    /// <param name="x">X Coordinate of King</param>
+    /// <param name="y">Y Coordinate of King</param>
+    /// <param name="team">Team of King</param>
+    /// <returns>List of Tiles</returns>
+    private List<MovementData> getKingTilesRaw(Tile tile, Tile[,] tileDataArray)
+    {
+        List<MovementData> options = new List<MovementData>();
+        Tile t;
+
+        int x = tile.getXPosition();
+        int y = tile.getYPosition();
+        Team team = tile.getCurrentPiece().team;
+
+        //Check position 1/1
+        t = positionHelper(x + 1, y + 1, team, tileDataArray);
+        if (t != null)
+            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
+            {
+                if (t.getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardMovement));
+                else
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardTaken));
+            }
+
+        //Check position 0/1
+        t = positionHelper(x, y + 1, team, tileDataArray);
+        if (t != null)
+            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
+            {
+                if (t.getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x, y + 1], StateChange.StandardMovement));
+                else
+                    options.Add(new MovementData(tile, tileDataArray[x, y + 1], StateChange.StandardTaken));
+            }
+
+        //Check position 1/0
+        t = positionHelper(x + 1, y, team, tileDataArray);
+        if (t != null)
+            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
+            {
+                if (t.getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
+                else
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardTaken));
+            }
+
+        //Check position -1/1
+        t = positionHelper(x - 1, y + 1, team, tileDataArray);
+        if (t != null)
+            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
+            {
+                if (t.getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardMovement));
+                else
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardTaken));
+            }
+
+        //Check position 1/-1
+        t = positionHelper(x + 1, y - 1, team, tileDataArray);
+        if (t != null)
+            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
+            {
+                if (t.getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardMovement));
+                else
+                    options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardTaken));
+            }
+
+        //Check position -1/-1
+        t = positionHelper(x - 1, y - 1, team, tileDataArray);
+        if (t != null)
+            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
+            {
+                if (t.getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardMovement));
+                else
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardTaken));
+            }
+
+        //Check position -1/0
+        t = positionHelper(x - 1, y, team, tileDataArray);
+        if (t != null)
+            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
+            {
+                if (t.getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
+                else
+                    options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardTaken));
+            }
+
+        //Check position 0/-1
+        t = positionHelper(x, y - 1, team, tileDataArray);
+        if (t != null)
+            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
+            {
+                if (t.getCurrentPiece() == null)
+                    options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardMovement));
+                else
+                    options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardTaken));
+            }
+
+        return options;
     }
     #endregion
 }

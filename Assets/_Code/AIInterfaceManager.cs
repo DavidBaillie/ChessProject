@@ -53,7 +53,8 @@ public class AIInterfaceManager : MonoBehaviour {
     /// <param name="y2">Move to Y Coordinate</param>
     internal void finishAITurn ()
     {
-        positionManager.moveToTile(finalChoice);
+        //TODO - Uncomment this to make AI functional again
+        //positionManager.moveToTile(finalChoice);
     }
 
     /// <summary>

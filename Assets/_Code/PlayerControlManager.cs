@@ -7,7 +7,9 @@ public class PlayerControlManager : MonoBehaviour {
     private PossiblePositionManager positionsManager;
 
     private Tile selected;
+    private Tile current;
     private List<Tile> options;
+    private List<MovementData> returnedMovements;
 
     /// <summary>
     /// Called at scene start
@@ -32,18 +34,25 @@ public class PlayerControlManager : MonoBehaviour {
             RaycastHit hit;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
             {
-                Tile current = hit.collider.gameObject.GetComponent<Tile>();
+                current = hit.collider.gameObject.GetComponent<Tile>();
 
                 //Case when nothing selected
                 if (selected == null)
                 {
                     //There is a valid piece to select
-                    if (current.getCurrentPiece() != null && current.getCurrentPiece().team == 0)
+                    if (current.getCurrentPiece() != null && current.getCurrentPiece().team == Team.Player)
                     {
                         //Save selection and get valid movement options
                         selected = current;
-                        options = positionsManager.getPlayerPossibleTiles
-                            (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);                     
+                        returnedMovements = positionsManager.getPlayerPossibleTiles
+                            (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
+
+                        //Parse movement data return into Tile options
+                        options = new List<Tile>();
+                        for (int i = 0; i < returnedMovements.Count; i++)
+                        {
+                            options.Add(returnedMovements[i].endTile);
+                        }
                     }
 
                     return;
@@ -52,19 +61,21 @@ public class PlayerControlManager : MonoBehaviour {
                 //Otherwise we can check for movement or de-select
                 if (options.Contains(current))
                 {
-                    positionsManager.moveToTile(selected, current, 0);
+                    positionsManager.moveToTile(returnedMovements[options.IndexOf(selected)]);
                     selected = null;
                     current = null;
+                    options = null;
+                    returnedMovements = null;
                 }
                 //Otherwise we figure out what to do other than moving a piece
                 else
                 {
                     //Case where the player clicked on another one of their pieces
-                    if (current.getCurrentPiece().team == 0)
+                    if (current.getCurrentPiece().team == Team.Player)
                     {
                         //Change selection to new piece
                         selected = current;
-                        options = positionsManager.getPlayerPossibleTiles
+                        returnedMovements = positionsManager.getPlayerPossibleTiles
                             (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
                     }
                     //Otherwise clear selection

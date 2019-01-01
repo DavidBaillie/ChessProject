@@ -52,7 +52,7 @@ public class BoardPositionInitializer : MonoBehaviour {
 
                 //Give the tilePoint a Tile class for later usage
                 Tile t = tilePoint.AddComponent<Tile>();
-                t.initialize(new BoardLocation(tilePoint, x, y), getPieceToSpawn(x, y));
+                t.initialize(getPieceToSpawn(x, y), x, y, tilePoint);
                 boardTileArray[x, y] = t;
                                 
                 colourSwitch = !colourSwitch;

@@ -35,7 +35,7 @@ public class PlayerControlManager : MonoBehaviour {
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
             {
                 current = hit.collider.gameObject.GetComponent<Tile>();
-                Debug.Log("Selected Tile: " + current.getXPosition() + "/" + current.getYPosition());
+                Debug.Log("__Selected Tile: " + current.getXPosition() + "/" + current.getYPosition());
 
                 //Case when nothing selected
                 if (selected == null)
@@ -47,9 +47,9 @@ public class PlayerControlManager : MonoBehaviour {
                         selected = current;
                         returnedMovements = positionsManager.getPlayerPossibleTiles
                             (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
-                        Debug.Log("Getting options for selected Tile: " + returnedMovements.Count);
+                        Debug.Log("__Getting options for selected Tile: " + returnedMovements.Count);
                     }
-                    else Debug.Log("Selected friendly piece, doing nothing");
+                    else Debug.Log("__Selected friendly piece, doing nothing");
 
                     return;
                 }
@@ -57,7 +57,7 @@ public class PlayerControlManager : MonoBehaviour {
                 //
                 if (movementsContainTile(returnedMovements, current))
                 {
-                    Debug.Log("Selected valid positon to move to, moving");
+                    Debug.Log("__Selected valid positon to move to, moving");
                     positionsManager.moveToTile(getMovementToTile(returnedMovements, current));
                     selected = null;
                     current = null;
@@ -65,11 +65,11 @@ public class PlayerControlManager : MonoBehaviour {
                 //Otherwise we figure out what to do other than moving a piece
                 else
                 {
-                    Debug.Log("Selected invalid tile with previous selected");
+                    Debug.Log("__Selected invalid tile with previous selected");
                     //Case where the player clicked on another one of their pieces
                     if (current.getCurrentPiece().team == Team.Player)
                     {
-                        Debug.Log("Selected second friendly piece");
+                        Debug.Log("__Selected second friendly piece");
                         //Change selection to new piece
                         selected = current;
                         returnedMovements = positionsManager.getPlayerPossibleTiles
@@ -78,7 +78,7 @@ public class PlayerControlManager : MonoBehaviour {
                     //Otherwise clear selection
                     else
                     {
-                        Debug.Log("Selected emtpy/invalid Tile, resetting selection");
+                        Debug.Log("__Selected emtpy/invalid Tile, resetting selection");
                         selected = null;
                     }
                 }

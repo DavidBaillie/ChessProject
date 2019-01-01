@@ -222,6 +222,17 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         finalChoice = data;
     }
+
+    /// <summary>
+    /// Clears all cached versions of Tiles used by the AI or other code when a copy of the Game Board is needed
+    /// </summary>
+    internal void clearCashedArrayCopies ()
+    {
+        for (int i = 0; i < holder.transform.childCount; i++)
+        {
+            Destroy(holder.transform.GetChild(i).gameObject);
+        }
+    }
 }
 
 /*

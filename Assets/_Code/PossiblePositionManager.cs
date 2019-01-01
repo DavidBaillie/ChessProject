@@ -35,8 +35,6 @@ public class PossiblePositionManager : MonoBehaviour {
     internal void moveToTile(MovementData data)
     {
         //Update who's turn it is
-        Debug.Log("START TILE " + data.startTile.getXPosition() + "/" + data.startTile.getYPosition());
-        Debug.Log("END TILE " + data.endTile.getXPosition() + "/" + data.endTile.getYPosition());
         if (data.startTile.getCurrentPiece().team == Team.Player) playersTurn = false;
         else playersTurn = true;
 
@@ -351,9 +349,13 @@ public class PossiblePositionManager : MonoBehaviour {
 
         output += "Printing MovementData: \n";
         output += "Starting Tile: " + data.startTile.getXPosition() + "/" + data.startTile.getYPosition();
+        if (data.startTile.getCurrentPiece() == null) output += "(Null) ";
+        else output += "(" + data.startTile.getCurrentPiece().type.ToString() + ") ";
         output += "  -->  ";
-        output += "End Tile: " + data.endTile.getXPosition() + "/" + data.endTile.getYPosition() + "\n";
-        output += "Movement Type: " + data.movementType.ToString();
+        output += "End Tile: " + data.endTile.getXPosition() + "/" + data.endTile.getYPosition();
+        if (data.endTile.getCurrentPiece() == null) output += "(Null) ";
+        else output += "(" + data.endTile.getCurrentPiece().type.ToString() + ") ";
+        output += "\n Movement Type: " + data.movementType.ToString();
 
         Debug.Log(output);
     }
@@ -820,7 +822,6 @@ public class PossiblePositionManager : MonoBehaviour {
         //Check king against enemy pieces
         foreach (Tile tile in gameBoard)
         {
-            if (tile == null) Debug.Log("Null Tile");
             //Only run on hostile pieces
             if (tile.getCurrentPiece() == null) continue;
             if (tile.getCurrentPiece().team == team) continue;
@@ -854,8 +855,9 @@ public class PossiblePositionManager : MonoBehaviour {
     private Tile[,] movePiece (Tile start, Tile end, Tile[,] tileDataArray)
     {
         Tile[,] newBoard = AI_Interface.AC_getCopyOfBoard(tileDataArray);
-        end.setCurrentPiece(start.getCurrentPiece());
-        start.setCurrentPiece(null);
+
+        newBoard[end.getXPosition(), end.getYPosition()].setCurrentPiece(newBoard[start.getXPosition(), start.getYPosition()].getCurrentPiece());
+        newBoard[start.getXPosition(), start.getYPosition()].setCurrentPiece(null);
 
         return newBoard;
     }

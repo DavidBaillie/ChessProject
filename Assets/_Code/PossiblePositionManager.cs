@@ -35,6 +35,8 @@ public class PossiblePositionManager : MonoBehaviour {
     internal void moveToTile(MovementData data)
     {
         //Update who's turn it is
+        Debug.Log("START TILE " + data.startTile.getXPosition() + "/" + data.startTile.getYPosition());
+        Debug.Log("END TILE " + data.endTile.getXPosition() + "/" + data.endTile.getYPosition());
         if (data.startTile.getCurrentPiece().team == Team.Player) playersTurn = false;
         else playersTurn = true;
 
@@ -244,12 +246,20 @@ public class PossiblePositionManager : MonoBehaviour {
             //Pawn still at starting position
             if (x == 1)
             {
+                if (tileDataArray[1, y].getCurrentPiece() == null) Debug.Log("Started Null");
+                else Debug.Log("Started with " + tileDataArray[1,y].getCurrentPiece().type.ToString());
                 if (tileDataArray[2, y].getCurrentPiece() == null)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[2, y], tileDataArray), team) == false)
+                    {
+                        if (tileDataArray[1, y].getCurrentPiece() == null) Debug.Log("Ended Null");
+                        else Debug.Log("Ended with " + tileDataArray[1, y].getCurrentPiece().type.ToString());
                         options.Add(new MovementData(tile, tileDataArray[2, y], StateChange.StandardMovement));
+                    }
                 if (tileDataArray[2, y].getCurrentPiece() == null && tileDataArray[3, y].getCurrentPiece() == null)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[3, y], tileDataArray), team) == false)
+                    {
                         options.Add(new MovementData(tile, tileDataArray[3, y], StateChange.StandardMovement));
+                    }
             }
             //Pawn is out on the board, check for forwards movement
             else
@@ -331,8 +341,21 @@ public class PossiblePositionManager : MonoBehaviour {
                         tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
             }
         }
-
+        foreach (MovementData data in options) printMovementData(data);
         return options;
+    }
+
+    internal void printMovementData (MovementData data)
+    {
+        string output = "";
+
+        output += "Printing MovementData: \n";
+        output += "Starting Tile: " + data.startTile.getXPosition() + "/" + data.startTile.getYPosition();
+        output += "  -->  ";
+        output += "End Tile: " + data.endTile.getXPosition() + "/" + data.endTile.getYPosition() + "\n";
+        output += "Movement Type: " + data.movementType.ToString();
+
+        Debug.Log(output);
     }
 
     /// <summary>
@@ -776,6 +799,9 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns>Bool of case</returns>
     private bool pawnDoubleMoveLastTurn ()
     {
+        //Make sure last move exists - edge case for first move
+        if (lastMove.startTile == null || lastMove.endTile == null) return false;
+
         //Make sure we're checking a pawn
         if (lastMove.movementType == StateChange.EnPassen) return false;
         if (lastMove.startTile.getCurrentPiece().type != PieceTypes.Pawn) return false;
@@ -794,6 +820,7 @@ public class PossiblePositionManager : MonoBehaviour {
         //Check king against enemy pieces
         foreach (Tile tile in gameBoard)
         {
+            if (tile == null) Debug.Log("Null Tile");
             //Only run on hostile pieces
             if (tile.getCurrentPiece() == null) continue;
             if (tile.getCurrentPiece().team == team) continue;

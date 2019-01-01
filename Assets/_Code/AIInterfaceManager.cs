@@ -8,6 +8,8 @@ public class AIInterfaceManager : MonoBehaviour {
     private PossiblePositionManager positionManager;
     private MovementData finalChoice;
 
+    private GameObject holder;
+
     /// <summary>
     /// Main thread that spins up and controls AI with interactions back to main Unity Systems
     /// </summary>
@@ -36,6 +38,8 @@ public class AIInterfaceManager : MonoBehaviour {
     /// </summary>
     internal void initialize (PossiblePositionManager positionManager)
     {
+        holder = new GameObject("TEMP HOLDER");
+
         //Save positions manager
         this.positionManager = positionManager;
         //updateBoardStatus();
@@ -75,13 +79,35 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         Tile[,] copy = new Tile[8, 8];
 
+        //Foreach Tile on the board
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)
             {
-                Tile t = new Tile();
-                t.initialize(data[x, y].getCurrentPiece(), data[x, y].getXPosition(), 
-                    data[x, y].getYPosition(), data[x, y].getTileObject());
+                //Spin up a new Tile and GameObject to attach to
+                GameObject n = new GameObject(".");
+                n.transform.position = new Vector3(9999,9999,9999);
+                Tile t = n.AddComponent<Tile>();
+                                
+                //Assign needed data to tile
+                if (data[x,y].getCurrentPiece() != null)
+                {
+                    Piece newPiece = new Piece();
+                    newPiece.type = data[x, y].getCurrentPiece().type;
+                    newPiece.team = data[x, y].getCurrentPiece().team;
+
+                    t.initialize(newPiece, data[x, y].getXPosition(), data[x, y].getYPosition(), data[x, y].getTileObject());
+                    copy[x, y] = t;
+                }
+                else
+                {
+                    t.initialize(null, data[x, y].getXPosition(), data[x, y].getYPosition(), data[x, y].getTileObject());
+                }
+
+                //Nest Object
+                n.transform.parent = holder.transform;
+
+                //Assign to array
                 copy[x, y] = t;
             }
         }

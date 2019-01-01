@@ -35,6 +35,7 @@ public class PlayerControlManager : MonoBehaviour {
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
             {
                 current = hit.collider.gameObject.GetComponent<Tile>();
+                Debug.Log("Selected Tile: " + current.getXPosition() + "/" + current.getYPosition());
 
                 //Case when nothing selected
                 if (selected == null)
@@ -46,33 +47,29 @@ public class PlayerControlManager : MonoBehaviour {
                         selected = current;
                         returnedMovements = positionsManager.getPlayerPossibleTiles
                             (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
-
-                        //Parse movement data return into Tile options
-                        options = new List<Tile>();
-                        for (int i = 0; i < returnedMovements.Count; i++)
-                        {
-                            options.Add(returnedMovements[i].endTile);
-                        }
+                        Debug.Log("Getting options for selected Tile: " + returnedMovements.Count);
                     }
+                    else Debug.Log("Selected friendly piece, doing nothing");
 
                     return;
                 }
-                
-                //Otherwise we can check for movement or de-select
-                if (options.Contains(current))
+
+                //
+                if (movementsContainTile(returnedMovements, current))
                 {
-                    positionsManager.moveToTile(returnedMovements[options.IndexOf(selected)]);
+                    Debug.Log("Selected valid positon to move to, moving");
+                    positionsManager.moveToTile(getMovementToTile(returnedMovements, current));
                     selected = null;
                     current = null;
-                    options = null;
-                    returnedMovements = null;
                 }
                 //Otherwise we figure out what to do other than moving a piece
                 else
                 {
+                    Debug.Log("Selected invalid tile with previous selected");
                     //Case where the player clicked on another one of their pieces
                     if (current.getCurrentPiece().team == Team.Player)
                     {
+                        Debug.Log("Selected second friendly piece");
                         //Change selection to new piece
                         selected = current;
                         returnedMovements = positionsManager.getPlayerPossibleTiles
@@ -81,10 +78,43 @@ public class PlayerControlManager : MonoBehaviour {
                     //Otherwise clear selection
                     else
                     {
+                        Debug.Log("Selected emtpy/invalid Tile, resetting selection");
                         selected = null;
                     }
                 }
             }
         }
+    }
+
+    /// <summary>
+    /// Returns if the tile is contained as a possible end point within the provided MovementData List
+    /// </summary>
+    /// <param name="movements">Movement Options</param>
+    /// <param name="tile">Tile to check for presence</param>
+    /// <returns>If a match exists</returns>
+    private bool movementsContainTile (List<MovementData> movements, Tile tile)
+    {
+        foreach (MovementData move in movements)
+        {
+            if (move.endTile.getXPosition() == tile.getXPosition() && move.endTile.getYPosition() == tile.getYPosition()) return true;
+        }
+
+        return false;
+    }
+
+    /// <summary>
+    /// Returns the MovementData associated with the provided Tile
+    /// </summary>
+    /// <param name="movements">Possible movements</param>
+    /// <param name="tile">Tile to find for movement</param>
+    /// <returns>MovementData containing the Tile</returns>
+    private MovementData getMovementToTile (List<MovementData> movements, Tile tile)
+    {
+        foreach (MovementData move in movements)
+        {
+            if (move.endTile.getXPosition() == tile.getXPosition() && move.endTile.getYPosition() == tile.getYPosition()) return move;
+        }
+
+        return new MovementData();
     }
 }

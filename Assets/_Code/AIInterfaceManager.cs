@@ -14,6 +14,7 @@ public class AIInterfaceManager : MonoBehaviour {
     /// <param name="parent">AIInterfaceManager for Unity Interactions</param>
     private static void main_AI_Thread(AIInterfaceManager parent)
     {
+        /*
         //Continue running while game active
         while (true)
         {
@@ -26,6 +27,7 @@ public class AIInterfaceManager : MonoBehaviour {
                 parent.finishAITurn();
             }
         }
+        */
     }
 
     /// <summary>
@@ -39,9 +41,9 @@ public class AIInterfaceManager : MonoBehaviour {
         //updateBoardStatus();
 
         //Spin up thread;
-        Thread t = new Thread(() => main_AI_Thread(this));
-        t.IsBackground = true;
-        t.Start();
+        //Thread t = new Thread(() => main_AI_Thread(this));
+        //t.IsBackground = true;
+        //t.Start();
     }
 
     /// <summary>

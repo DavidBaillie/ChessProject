@@ -29,7 +29,7 @@ public class PlayerControlManager : MonoBehaviour {
         if (Input.GetMouseButtonDown(0))
         {
             //Don't let the player do anything if it's not their turn
-            if (positionsManager.isPlayersTurn() == false) return;
+            //if (positionsManager.isPlayersTurn() == false) return;            //TODO - Uncomment this
 
             RaycastHit hit;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))

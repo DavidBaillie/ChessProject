@@ -41,9 +41,16 @@ public class Tile : MonoBehaviour {
             currentPiece.gameObject.name = currentPiece.type.ToString();
         }
 
+        /*
         //Set Material component data
         material = GetComponent<Renderer>().material;
+        if (material == null)
+        {
+            Debug.Log("CODE ERROR - Null Reference - GetComponent failed to find Renderer on GameObject " + this.gameObject.name);
+            return;
+        }
         baseColour = GetComponent<Renderer>().material.color;
+        */
     }
 
     /// <summary>
@@ -51,6 +58,7 @@ public class Tile : MonoBehaviour {
     /// </summary>
     private void Update()
     {
+        /*
         if (timer > 0)
         {
             material.SetColor("_Color", availableColour);
@@ -60,6 +68,7 @@ public class Tile : MonoBehaviour {
         {
             material.SetColor("_Color", baseColour);
         }
+        */
     }
 
     /// <summary>

@@ -95,6 +95,8 @@ public class PossiblePositionManager : MonoBehaviour {
                 startTwo.setCurrentPiece(null);
                 break;
         }
+
+		if (playersTurn == false) AI_Interface.runAI();
     }
 
     /// <summary>
@@ -806,7 +808,7 @@ public class PossiblePositionManager : MonoBehaviour {
 
         //Make sure we're checking a pawn
         if (lastMove.movementType == StateChange.EnPassen) return false;
-        if (lastMove.startTile.getCurrentPiece().type != PieceTypes.Pawn) return false;
+        if (lastMove.endTile.getCurrentPiece().type != PieceTypes.Pawn) return false;
 
         return Mathf.Abs(lastMove.startTile.getXPosition() - lastMove.endTile.getXPosition()) == 2;
     }

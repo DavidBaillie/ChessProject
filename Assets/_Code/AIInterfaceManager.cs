@@ -16,7 +16,7 @@ public class AIInterfaceManager : MonoBehaviour {
     /// <param name="parent">AIInterfaceManager for Unity Interactions</param>
     private static void main_AI_Thread(AIInterfaceManager parent)
     {
-        /*
+        
         //Continue running while game active
         while (true)
         {
@@ -29,8 +29,19 @@ public class AIInterfaceManager : MonoBehaviour {
                 parent.finishAITurn();
             }
         }
-        */
+        
     }
+
+	//
+	internal void runAI () 
+	{
+		Debug.Log("starting AI");
+		//Spin up AI
+		Main m = new Main(this);
+		Debug.Log("AI finished calculations, submitting response");
+		finishAITurn();
+		Debug.Log("Movement Submitted");
+	}
 
     /// <summary>
     /// Called by the PossiblePositionManager once world generation has completed.
@@ -44,10 +55,12 @@ public class AIInterfaceManager : MonoBehaviour {
         this.positionManager = positionManager;
         //updateBoardStatus();
 
-        //Spin up thread;
-        //Thread t = new Thread(() => main_AI_Thread(this));
-        //t.IsBackground = true;
-        //t.Start();
+        //Spin up thread
+		/*
+        Thread t = new Thread(() => main_AI_Thread(this));
+        t.IsBackground = true;
+        t.Start();
+		*/
     }
 
     /// <summary>
@@ -60,7 +73,7 @@ public class AIInterfaceManager : MonoBehaviour {
     internal void finishAITurn ()
     {
         //TODO - Uncomment this to make AI functional again
-        //positionManager.moveToTile(finalChoice);
+        positionManager.moveToTile(finalChoice);
     }
 
     /// <summary>

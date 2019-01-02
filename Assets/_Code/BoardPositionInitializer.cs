@@ -59,8 +59,8 @@ public class BoardPositionInitializer : MonoBehaviour {
             }
         }
 
-        //Save persistent data over on the position manager
-        GetComponent<PossiblePositionManager>().setTileDataArray(boardTileArray);
+		//Save persistent data over on the position manager
+		GetComponent<PossiblePositionManager>().setTileDataArray(boardTileArray);
     }
 
 

@@ -105,12 +105,15 @@ public class AIInterfaceManager : MonoBehaviour {
                 //Assign needed data to tile
                 if (data[x,y].getCurrentPiece() != null)
                 {
-                    Piece newPiece = new Piece();
+					GameObject p = new GameObject(".");
+					p.transform.position = new Vector3(999, 999, 999);
+					Piece newPiece = p.AddComponent<Piece>();
                     newPiece.type = data[x, y].getCurrentPiece().type;
                     newPiece.team = data[x, y].getCurrentPiece().team;
 
                     t.initialize(newPiece, data[x, y].getXPosition(), data[x, y].getYPosition(), data[x, y].getTileObject());
                     copy[x, y] = t;
+					
                 }
                 else
                 {
@@ -125,7 +128,10 @@ public class AIInterfaceManager : MonoBehaviour {
             }
         }
 
-        return copy;
+		for (int i = 0; i < 8; i++) { for (int k = 0; k < 8; k++) { if (copy[i, k].getCurrentPiece() != null) Debug.Log(i + "/" + k + " is "); } }
+
+
+		return copy;
     }
 
     /// <summary>

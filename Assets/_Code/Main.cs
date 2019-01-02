@@ -1,6 +1,5 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using System;
+﻿using System.Collections.Generic;
+using UnityEngine;
 
 public class Main {
 
@@ -15,9 +14,7 @@ public class Main {
 	/// <param name="unityInterface">Interface Class for Unity</param>
 	public Main(AIInterfaceManager unityInterface){
 		this.unityInterface = unityInterface;
-		Tile[,] startingBoard = unityInterface.AC_getCurrentBoard();
-		Tile[,] boardCopy = unityInterface.AC_getCopyOfBoard(startingBoard);
-
+		Tile[,] boardCopy = unityInterface.AC_getCurrentBoard();
 		MovementData bestChoice = searchAlphaBeta(boardCopy); // chooses an action
 		unityInterface.AC_submitChoice(bestChoice);
 	}
@@ -25,11 +22,19 @@ public class Main {
 	// Methods ------------------------------------------------------------
 
 	private MovementData searchAlphaBeta(Tile[,] boardCopy) {
+
+
+
+		if (boardCopy == null) Debug.Log("COPY NULL");
+		Debug.Log(boardCopy.Length);
 		List<Choice> allChoices = new List<Choice>(); // create a list of moves with their associated values
-		// for each piece on the board
+													  // for each piece on the board
+		Debug.Log("START FOREACH");
 		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a list of all pieces
+			Debug.Log("IN FOREACH");
 			if (tiles.getCurrentPiece().team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+			Debug.Log("Options Count: " + options.Count);
 			foreach (MovementData move in options) { // for each movement option
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // create a new board with movement of piece
 				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1); // starting cutoff 1 layer down (due to making 1 decision)
@@ -37,12 +42,14 @@ public class Main {
 				allChoices.Add(choice); // add wrapper class to a list
 			}
 		}
+		Debug.Log("Pre-AllChoices Count: " + allChoices.Count);
 		int bestValIndex = findBest(allChoices);// should return the index of the best-valued option
 		MovementData bestChoice = allChoices[bestValIndex].bestMove; // just getting the best choice
 		return bestChoice; //return choice with highest value
 	}
 
 	private int findBest(List<Choice> allChoices) {
+		if (allChoices.Count == 0) Debug.Log("we have an issue. I'm givin it all I've got captain!");
 		int index = 0;
 		int bestVal = allChoices[0].bestMoveValue; // TODO: what if empty list. Liam may need to check for this (empty list = check mate)
 		int counter = 0;
@@ -96,47 +103,21 @@ public class Main {
 	// turning everything into a new 1D list to make it easier to read from
 	private List<Tile> piecesList(Tile[,] arr) {
 		List<Tile> betterList = new List<Tile>();
-		for (int i = 0; i < arr.GetLength(0); i++) {
-			for (int k = 0; k < arr.GetLength(1); k++) {
+		for (int i = 0; i < 8; i++) {
+			for (int k = 0; k < 8; k++) {
 				if (arr[i,k].getCurrentPiece() != null) {
+					Debug.Log("Adding to list");
 					betterList.Add(arr[i, k]);
-				}
+				} //else //Debug.Log("No Add to list");
 			}
 		}
+		Debug.Log("LIST" + betterList.Count);
 		return betterList;
 	}
 
 	
-	///// <summary>
-	///// Called once the Main class constructor has finished running, ie the AI has run it's 
-	///// course and has made a decision. Will return the piece position data to be used.
-	///// </summary>
-	///// <returns>FinalData struct</returns>
-	//internal FinalData getFinalData () { return new FinalData(startXPosition, startYPosition, endXPosition, endYPosition, test); }
+	
 }
-
-///// <summary>
-///// Data struct used to return all needed data from the AI when a decision has been made
-///// </summary>
-//internal struct FinalData {
-//	internal int startXPosition;
-//	internal int startYPosition;
-//	internal int endXPosition;
-//	internal int endYPosition;
-
-//	internal Promotion newUnit;
-
-///// <summary>
-///// Constructor
-///// </summary>
-//internal FinalData(int x1, int y1, int x2, int y2, Promotion e) {
-//		startXPosition = x1;
-//		startYPosition = y1;
-//		endXPosition = x2;
-//		endYPosition = y2;
-//		newUnit = e;
-//	}
-//}
 
 class Choice {
 	internal int bestMoveValue;

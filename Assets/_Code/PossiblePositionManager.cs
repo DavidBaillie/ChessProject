@@ -22,8 +22,7 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         boardTileArray = data;
 
-
-        AI_Interface = GetComponent<AIInterfaceManager>();
+		AI_Interface = GetComponent<AIInterfaceManager>();
         AI_Interface.initialize(this);
     }
 

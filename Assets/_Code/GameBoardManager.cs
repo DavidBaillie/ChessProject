@@ -107,6 +107,7 @@ public class GameBoardManager : MonoBehaviour {
             WorldPiece whitePiece = whitePawn.AddComponent<WorldPiece>();
             whitePiece.instanciate(new Vector3(1, 0.5f, i), PieceTypes.Pawn, Team.Player, movementSpeed);
 
+            gameBoard[1, i].currentPiece = whitePiece;
 
 
             //Create GameObject for Black Pawn and set to correct position
@@ -118,6 +119,8 @@ public class GameBoardManager : MonoBehaviour {
             //Set up AI Pawn
             WorldPiece blackPiece = blackPawn.AddComponent<WorldPiece>();
             blackPiece.instanciate(new Vector3(6, 0.5f, i), PieceTypes.Pawn, Team.AI, movementSpeed);
+
+            gameBoard[6, i].currentPiece = blackPiece;
         }
 
         //Create all non-pawn Pieces

@@ -26,11 +26,10 @@ public class PlayerControlManager : MonoBehaviour {
         //Mouse left click event
         if (Input.GetMouseButtonDown(0) && positionsManager.isPlayersTurn())
         {
-
             RaycastHit hit;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
             {
-                registerPlayerAction(hit);
+                registerPlayerAction(hit.collider.gameObject.GetComponent<WorldTile>());
             }
         }
     }
@@ -39,9 +38,9 @@ public class PlayerControlManager : MonoBehaviour {
     /// If there is valid user input we take their selection and determine an action
     /// </summary>
     /// <param name="hit">RaycastHit of selection</param>
-    private void registerPlayerAction (RaycastHit hit)
+    private void registerPlayerAction (WorldTile c)
     {
-        current = hit.collider.gameObject.GetComponent<WorldTile>();
+        current = c;
 
         //Case where nothing is currently selected
         if (selected == null)
@@ -54,7 +53,7 @@ public class PlayerControlManager : MonoBehaviour {
                 selected = current;
                 returnedMovements = positionsManager.getPlayerPossibleTiles(current.x, current.y, current.currentPiece.type);
             }
-
+            
             return;
         }
 

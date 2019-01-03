@@ -191,6 +191,27 @@ public class PossiblePositionManager : MonoBehaviour {
 
     #region Get Piece Options
     /// <summary>
+    /// Debugger method designed to print important Data from MovementData to the Log Window.
+    /// </summary>
+    /// <param name="data">MovementData to print</param>
+    internal void printMovementData(MovementData data)
+    {
+        string output = "";
+
+        output += "Printing MovementData: \n";
+        output += "Starting Tile: " + data.startTile.x + "/" + data.startTile.y;
+        if (data.startTile.currentPiece == null) output += "(Null) ";
+        else output += "(" + data.startTile.currentPiece.type.ToString() + ") ";
+        output += "  -->  ";
+        output += "End Tile: " + data.endTile.x + "/" + data.endTile.y;
+        if (data.endTile.currentPiece == null) output += "(Null) ";
+        else output += "(" + data.endTile.currentPiece.type.ToString() + ") ";
+        output += "\n Movement Type: " + data.movementType.ToString();
+
+        Debug.Log(output);
+    }
+
+    /// <summary>
     /// Given the pawn's team, this method will find all valid movement positions for the piece
     /// </summary>
     /// <param name="x">X Coordinate of Tile</param>
@@ -306,23 +327,6 @@ public class PossiblePositionManager : MonoBehaviour {
         }
         foreach (MovementData data in options) printMovementData(data);
         return options;
-    }
-
-    internal void printMovementData (MovementData data)
-    {
-        string output = "";
-
-        output += "Printing MovementData: \n";
-        output += "Starting Tile: " + data.startTile.x + "/" + data.startTile.y;
-        if (data.startTile.currentPiece == null) output += "(Null) ";
-        else output += "(" + data.startTile.currentPiece.type.ToString() + ") ";
-        output += "  -->  ";
-        output += "End Tile: " + data.endTile.x + "/" + data.endTile.y;
-        if (data.endTile.currentPiece == null) output += "(Null) ";
-        else output += "(" + data.endTile.currentPiece.type.ToString() + ") ";
-        output += "\n Movement Type: " + data.movementType.ToString();
-
-        Debug.Log(output);
     }
 
     /// <summary>
@@ -467,45 +471,45 @@ public class PossiblePositionManager : MonoBehaviour {
         t = positionHelper(x + 2, y + 1, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, tileDataArray[x + 2, y + 1], tileDataArray), team) == false)
-                options.Add(new MovementData(tile, tileDataArray[x + 2, y + 1], StateChange.StandardTaken));
+                options.Add(new MovementData(tile, tileDataArray[x + 2, y + 1], t.currentPiece == null ? StateChange.StandardMovement : StateChange.StandardTaken));
         //Check knight position 2/-1
         t = positionHelper(x + 2, y - 1, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, tileDataArray[x + 2, y - 1], tileDataArray), team) == false)
-                options.Add(new MovementData(tile, tileDataArray[x + 2, y - 1], StateChange.StandardTaken));
+                options.Add(new MovementData(tile, tileDataArray[x + 2, y - 1], t.currentPiece == null ? StateChange.StandardMovement : StateChange.StandardTaken));
 
         //Check knight position 1/2
         t = positionHelper(x + 1, y + 2, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, tileDataArray[x + 1, y + 2], tileDataArray), team) == false)
-                options.Add(new MovementData(tile, tileDataArray[x + 1, y + 2], StateChange.StandardTaken));
+                options.Add(new MovementData(tile, tileDataArray[x + 1, y + 2], t.currentPiece == null ? StateChange.StandardMovement : StateChange.StandardTaken));
         //Check knight position -1/2
         t = positionHelper(x - 1, y + 2, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, tileDataArray[x - 1, y + 2], tileDataArray), team) == false)
-                options.Add(new MovementData(tile, tileDataArray[x - 1, y + 2], StateChange.StandardTaken));
+                options.Add(new MovementData(tile, tileDataArray[x - 1, y + 2], t.currentPiece == null ? StateChange.StandardMovement : StateChange.StandardTaken));
 
         //Check knight position -2/1
         t = positionHelper(x - 2, y + 1, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, tileDataArray[x - 2, y + 1], tileDataArray), team) == false)
-                options.Add(new MovementData(tile, tileDataArray[x - 2, y + 1], StateChange.StandardTaken));
+                options.Add(new MovementData(tile, tileDataArray[x - 2, y + 1], t.currentPiece == null ? StateChange.StandardMovement : StateChange.StandardTaken));
         //Check knight position -2/-1
         t = positionHelper(x -2, y - 1, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, tileDataArray[x - 2, y - 1], tileDataArray), team) == false)
-                options.Add(new MovementData(tile, tileDataArray[x - 2, y - 1], StateChange.StandardTaken));
+                options.Add(new MovementData(tile, tileDataArray[x - 2, y - 1], t.currentPiece == null ? StateChange.StandardMovement : StateChange.StandardTaken));
 
         //Check knight position 1/-2
         t = positionHelper(x + 1, y - 2, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, tileDataArray[x + 2, y - 2], tileDataArray), team) == false)
-                options.Add(new MovementData(tile, tileDataArray[x + 1, y - 2], StateChange.StandardTaken));
+                options.Add(new MovementData(tile, tileDataArray[x + 1, y - 2], t.currentPiece == null ? StateChange.StandardMovement : StateChange.StandardTaken));
         //Check knight position -1/-2
         t = positionHelper(x - 1, y - 2, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, tileDataArray[x - 1, y - 2], tileDataArray), team) == false)
-                options.Add(new MovementData(tile, tileDataArray[x - 1, y - 2], StateChange.StandardTaken));
+                options.Add(new MovementData(tile, tileDataArray[x - 1, y - 2], t.currentPiece == null ? StateChange.StandardMovement : StateChange.StandardTaken));
 
         return options;
     }
@@ -800,6 +804,8 @@ public class PossiblePositionManager : MonoBehaviour {
             {
                 if (movement.movementType == StateChange.StandardTaken)
                 {
+                    if (movement.endTile.currentPiece == null) { Debug.Log("Failure in MovementData checking King: "); printMovementData(movement); }
+
                     if (movement.endTile.currentPiece.type == PieceTypes.King)
                         return true;
                 }
@@ -1091,38 +1097,78 @@ public class PossiblePositionManager : MonoBehaviour {
         //Check knight position 2/1
         t = positionHelper(x + 2, y + 1, team, tileDataArray);
         if (t != null)
-            options.Add(new MovementData(tile, tileDataArray[x + 2, y + 1], StateChange.StandardTaken));
+        {
+            if (t.currentPiece == null)
+                options.Add(new MovementData(tile, tileDataArray[x + 2, y + 1], StateChange.StandardMovement));
+            else
+                options.Add(new MovementData(tile, tileDataArray[x + 2, y + 1], StateChange.StandardTaken));
+        }
         //Check knight position 2/-1
         t = positionHelper(x + 2, y - 1, team, tileDataArray);
         if (t != null)
-            options.Add(new MovementData(tile, tileDataArray[x + 2, y - 1], StateChange.StandardTaken));
+        {
+            if (t.currentPiece == null)
+                options.Add(new MovementData(tile, tileDataArray[x + 2, y - 1], StateChange.StandardMovement));
+            else
+                options.Add(new MovementData(tile, tileDataArray[x + 2, y - 1], StateChange.StandardTaken));
+        }
 
         //Check knight position 1/2
         t = positionHelper(x + 1, y + 2, team, tileDataArray);
         if (t != null)
-            options.Add(new MovementData(tile, tileDataArray[x + 1, y + 2], StateChange.StandardTaken));
+        {
+            if (t.currentPiece == null)
+                options.Add(new MovementData(tile, tileDataArray[x + 1, y + 2], StateChange.StandardMovement));
+            else
+                options.Add(new MovementData(tile, tileDataArray[x + 1, y + 2], StateChange.StandardTaken));
+        }
         //Check knight position -1/2
         t = positionHelper(x - 1, y + 2, team, tileDataArray);
         if (t != null)
-            options.Add(new MovementData(tile, tileDataArray[x - 1, y + 2], StateChange.StandardTaken));
+        {
+            if (t.currentPiece == null)
+                options.Add(new MovementData(tile, tileDataArray[x - 1, y + 2], StateChange.StandardMovement));
+            else
+                options.Add(new MovementData(tile, tileDataArray[x - 1, y + 2], StateChange.StandardTaken));
+        }
 
         //Check knight position -2/1
         t = positionHelper(x - 2, y + 1, team, tileDataArray);
         if (t != null)
-            options.Add(new MovementData(tile, tileDataArray[x - 2, y + 1], StateChange.StandardTaken));
+        {
+            if (t.currentPiece == null)
+                options.Add(new MovementData(tile, tileDataArray[x - 2, y + 1], StateChange.StandardMovement));
+            else
+                options.Add(new MovementData(tile, tileDataArray[x - 2, y + 1], StateChange.StandardTaken));
+        }
         //Check knight position -2/-1
         t = positionHelper(x - 2, y - 1, team, tileDataArray);
         if (t != null)
-            options.Add(new MovementData(tile, tileDataArray[x - 2, y - 1], StateChange.StandardTaken));
+        {
+            if (t.currentPiece == null)
+                options.Add(new MovementData(tile, tileDataArray[x - 2, y - 1], StateChange.StandardMovement));
+            else
+                options.Add(new MovementData(tile, tileDataArray[x - 2, y - 1], StateChange.StandardTaken));
+        }
 
         //Check knight position 1/-2
         t = positionHelper(x + 1, y - 2, team, tileDataArray);
         if (t != null)
-            options.Add(new MovementData(tile, tileDataArray[x + 1, y - 2], StateChange.StandardTaken));
+        {
+            if (t.currentPiece == null)
+                options.Add(new MovementData(tile, tileDataArray[x + 1, y - 2], StateChange.StandardMovement));
+            else
+                options.Add(new MovementData(tile, tileDataArray[x + 1, y - 2], StateChange.StandardTaken));
+        }
         //Check knight position -1/-2
         t = positionHelper(x - 1, y - 2, team, tileDataArray);
         if (t != null)
-            options.Add(new MovementData(tile, tileDataArray[x - 1, y - 2], StateChange.StandardTaken));
+        {
+            if (t.currentPiece == null)
+                options.Add(new MovementData(tile, tileDataArray[x - 1, y - 2], StateChange.StandardMovement));
+            else
+                options.Add(new MovementData(tile, tileDataArray[x - 1, y - 2], StateChange.StandardTaken));
+        }
 
         return options;
     }

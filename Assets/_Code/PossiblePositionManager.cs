@@ -804,8 +804,6 @@ public class PossiblePositionManager : MonoBehaviour {
             {
                 if (movement.movementType == StateChange.StandardTaken)
                 {
-                    if (movement.endTile.currentPiece == null) { Debug.Log("Failure in MovementData checking King: "); printMovementData(movement); }
-
                     if (movement.endTile.currentPiece.type == PieceTypes.King)
                         return true;
                 }

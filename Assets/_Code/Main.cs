@@ -25,16 +25,12 @@ public class Main {
 
 
 
-		if (boardCopy == null) Debug.Log("COPY NULL");
 		Debug.Log(boardCopy.Length);
 		List<Choice> allChoices = new List<Choice>(); // create a list of moves with their associated values
 													  // for each piece on the board
-		Debug.Log("START FOREACH");
 		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a list of all pieces
-			Debug.Log("IN FOREACH");
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
-			Debug.Log("Options Count: " + options.Count);
 			foreach (MovementData move in options) { // for each movement option
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // create a new board with movement of piece
 				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1); // starting cutoff 1 layer down (due to making 1 decision)
@@ -42,14 +38,12 @@ public class Main {
 				allChoices.Add(choice); // add wrapper class to a list
 			}
 		}
-		Debug.Log("Pre-AllChoices Count: " + allChoices.Count);
 		int bestValIndex = findBest(allChoices);// should return the index of the best-valued option
 		MovementData bestChoice = allChoices[bestValIndex].bestMove; // just getting the best choice
 		return bestChoice; //return choice with highest value
 	}
 
 	private int findBest(List<Choice> allChoices) {
-		if (allChoices.Count == 0) Debug.Log("we have an issue. I'm givin it all I've got captain!");
 		int index = 0;
 		int bestVal = allChoices[0].bestMoveValue; // TODO: what if empty list. Liam may need to check for this (empty list = check mate)
 		int counter = 0;
@@ -106,12 +100,10 @@ public class Main {
 		for (int i = 0; i < 8; i++) {
 			for (int k = 0; k < 8; k++) {
 				if (arr[i,k].currentPiece != null) {
-					Debug.Log("Adding to list");
 					betterList.Add(arr[i, k]);
 				} //else //Debug.Log("No Add to list");
 			}
 		}
-		Debug.Log("LIST" + betterList.Count);
 		return betterList;
 	}
 

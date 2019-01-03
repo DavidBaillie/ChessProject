@@ -8,7 +8,7 @@ public class PossiblePositionManager : MonoBehaviour {
     private GameBoardManager boardManager;      //GameBoardManager responsible for Visual object interactions
 
     private bool playersTurn = true;            //Tracks if it is the AI or players turn
-    private Tile[,] boardTileArray;             //Array of Tile classes representing game board
+    private Tile[,] tileGameBoard;             //Array of Tile classes representing game board
 
     private Tile currentSelectedTile;           //Data saved when the player selects a Piece/Tile to move to a new Tile
     private List<Tile> possibleTiles;           //Possible tiles to move towards based on the currentSelectedTile
@@ -23,7 +23,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <param name="data">Array of all tiles on board</param>
     internal void construct (Tile[,] data)
     {
-        boardTileArray = data;
+        tileGameBoard = data;
 
 		AI_Interface = GetComponent<AIInterfaceManager>();
         AI_Interface.initialize(this);
@@ -73,7 +73,7 @@ public class PossiblePositionManager : MonoBehaviour {
         }
 
         //Update local game board and run AI if the Player just went
-        boardTileArray = boardManager.getTileCopyOfGameBoard();
+        tileGameBoard = boardManager.getTileCopyOfGameBoard();
         if (playersTurn == false) AI_Interface.runAI();
     }
 
@@ -96,7 +96,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// Called to get the current array of tiles on the board
     /// </summary>
     /// <returns></returns>
-    internal Tile[,] getTileArray() { return boardTileArray; }
+    internal Tile[,] getTileArray() { return tileGameBoard; }
 
     /// <summary>
     /// Returns the possible Tiles the provided Piece can move to using the current world Tiles
@@ -110,17 +110,17 @@ public class PossiblePositionManager : MonoBehaviour {
         switch (type)
         {
             case PieceTypes.Pawn:
-                return getPawnTiles(boardTileArray[x,y], boardTileArray);
+                return getPawnTiles(tileGameBoard[x,y], tileGameBoard);
             case PieceTypes.Rook:
-                return getRookTiles(boardTileArray[x, y], boardTileArray);
+                return getRookTiles(tileGameBoard[x, y], tileGameBoard);
             case PieceTypes.Knight:
-                return getKnightTiles(boardTileArray[x, y], boardTileArray);
+                return getKnightTiles(tileGameBoard[x, y], tileGameBoard);
             case PieceTypes.Bishop:
-                return getBishopTiles(boardTileArray[x, y], boardTileArray);
+                return getBishopTiles(tileGameBoard[x, y], tileGameBoard);
             case PieceTypes.Queen:
-                return getQueenTiles(boardTileArray[x, y], boardTileArray);
+                return getQueenTiles(tileGameBoard[x, y], tileGameBoard);
             case PieceTypes.King:
-                return getKingTiles(boardTileArray[x, y], boardTileArray);
+                return getKingTiles(tileGameBoard[x, y], tileGameBoard);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
                     "for unit " + type + " :: " + gameObject.name);
@@ -137,7 +137,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns></returns>
     internal List<MovementData> getPlayerPossibleTiles (Tile tile, Tile[,] currentTiles)
     {
-        switch (tile.getCurrentPiece().type)
+        switch (tile.currentPiece.type)
         {
             case PieceTypes.Pawn:
                 return getPawnTiles(tile, currentTiles);
@@ -153,7 +153,7 @@ public class PossiblePositionManager : MonoBehaviour {
                 return getKingTiles(tile, currentTiles);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
-                    "for unit " + tile.getCurrentPiece().type + " :: " + gameObject.name);
+                    "for unit " + tile.currentPiece.type + " :: " + gameObject.name);
                 return new List<MovementData>();
         }
     }
@@ -167,7 +167,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns></returns>
     internal List<MovementData> getAIPossibleTiles (Tile tile, Tile[,] currentTiles)
     {
-        switch (tile.getCurrentPiece().type)
+        switch (tile.currentPiece.type)
         {
             case PieceTypes.Pawn:
                 return getPawnTiles(tile, currentTiles);
@@ -183,7 +183,7 @@ public class PossiblePositionManager : MonoBehaviour {
                 return getKingTiles(tile, currentTiles);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
-                    "for unit " + tile.getCurrentPiece().type + " :: " + gameObject.name);
+                    "for unit " + tile.currentPiece.type + " :: " + gameObject.name);
                 return new List<MovementData>();
         }
     }
@@ -200,9 +200,9 @@ public class PossiblePositionManager : MonoBehaviour {
     private List<MovementData> getPawnTiles (Tile tile, Tile[,] tileDataArray)
     {
         List<MovementData> options = new List<MovementData>();
-        Team team = tile.getCurrentPiece().team;
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
+        Team team = tile.currentPiece.team;
+        int x = tile.x;
+        int y = tile.y;
 
 
         //Player pieces
@@ -211,16 +211,14 @@ public class PossiblePositionManager : MonoBehaviour {
             //Pawn still at starting position
             if (x == 1)
             {
-                if (tileDataArray[1, y].getCurrentPiece() == null) Debug.Log("Started Null");
-                else Debug.Log("Started with " + tileDataArray[1,y].getCurrentPiece().type.ToString());
-                if (tileDataArray[2, y].getCurrentPiece() == null)
+                //Check for if Tile infront of Pawn is emtpy and does not result in check - Add the Tile as a possible movement
+                if (tileDataArray[2, y].currentPiece == null)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[2, y], tileDataArray), team) == false)
                     {
-                        if (tileDataArray[1, y].getCurrentPiece() == null) Debug.Log("Ended Null");
-                        else Debug.Log("Ended with " + tileDataArray[1, y].getCurrentPiece().type.ToString());
                         options.Add(new MovementData(tile, tileDataArray[2, y], StateChange.StandardMovement));
                     }
-                if (tileDataArray[2, y].getCurrentPiece() == null && tileDataArray[3, y].getCurrentPiece() == null)
+                //If both Tiles infront of Pawn are available, add double move as possible option
+                if (tileDataArray[2, y].currentPiece == null && tileDataArray[3, y].currentPiece == null)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[3, y], tileDataArray), team) == false)
                     {
                         options.Add(new MovementData(tile, tileDataArray[3, y], StateChange.StandardMovement));
@@ -229,35 +227,35 @@ public class PossiblePositionManager : MonoBehaviour {
             //Pawn is out on the board, check for forwards movement
             else
             {
-                if (tileDataArray[x + 1, y].getCurrentPiece() == null)
+                if (tileDataArray[x + 1, y].currentPiece == null)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[x + 1, y], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
             }
             
 
-                //Check for side motion
+            //Check for ability to attack other Pieces to the side
             if (x < 7)
             {
                 //Check if we can attack on the right
-                if (y < 7 && tileDataArray[x + 1, y + 1].getCurrentPiece() != null && tileDataArray[x + 1, y + 1].getCurrentPiece().team == Team.AI)
+                if (y < 7 && tileDataArray[x + 1, y + 1].currentPiece != null && tileDataArray[x + 1, y + 1].currentPiece.team == Team.AI)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[x + 1, y + 1], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardTaken));
                 //Check if we can attack on the left
-                if (y > 0 && tileDataArray[x + 1, y - 1].getCurrentPiece() != null && tileDataArray[x + 1, y - 1].getCurrentPiece().team == Team.AI)
+                if (y > 0 && tileDataArray[x + 1, y - 1].currentPiece != null && tileDataArray[x + 1, y - 1].currentPiece.team == Team.AI)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[x + 1, y - 1], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardTaken)); ;
             }
 
             //Check for en passen
-            if (pawnDoubleMoveLastTurn()                                                    //Last move enemy pawn double moved from start
-                && tile.getXPosition() == lastMove.endTile.getXPosition()                   //Make sure pawns are on the same row
-                && Mathf.Abs(tile.getYPosition() - lastMove.endTile.getYPosition()) == 1)    //Make sure pawns are beside each other
+            if (pawnDoubleMoveLastTurn()                                //Last move enemy pawn double moved from start
+                && tile.x == lastMove.endTile.x                         //Make sure pawns are on the same row
+                && Mathf.Abs(tile.y - lastMove.endTile.y) == 1)         //Make sure pawns are beside each other
             {
-                if (kingIsInCheck(movePiece(tile, tileDataArray[tile.getXPosition() + 1, lastMove.endTile.getYPosition()], tileDataArray), team) == false)
+                if (kingIsInCheck(movePiece(tile, tileDataArray[tile.x + 1, lastMove.endTile.y], tileDataArray), team) == false)
                     options.Add(new MovementData(tile, 
-                        tileDataArray[tile.getXPosition() + 1, lastMove.endTile.getYPosition()],
+                        tileDataArray[tile.x + 1, lastMove.endTile.y],
                         StateChange.EnPassen, 
-                        tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
+                        tileDataArray[lastMove.endTile.x, lastMove.endTile.y]));
             }
         }
         //Moving AI pieces
@@ -266,17 +264,17 @@ public class PossiblePositionManager : MonoBehaviour {
             //Pawn at starting position
             if (x == 6)
             {
-                if (tileDataArray[5, y].getCurrentPiece() == null)
+                if (tileDataArray[5, y].currentPiece == null)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[5, y], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[5, y], StateChange.StandardMovement));
-                if (tileDataArray[5, y].getCurrentPiece() == null && tileDataArray[4, y].getCurrentPiece() == null)
+                if (tileDataArray[5, y].currentPiece == null && tileDataArray[4, y].currentPiece == null)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[4, y], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[4, y], StateChange.StandardMovement));
             }
             //Otherwise pawn out on board
             else
             {
-                if (tileDataArray[x - 1, y].getCurrentPiece() == null)
+                if (tileDataArray[x - 1, y].currentPiece == null)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[x - 1, y], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
             }
@@ -285,25 +283,25 @@ public class PossiblePositionManager : MonoBehaviour {
             if (x > 0)
             {
                 //Check if we can attack on the left
-                if (y < 7 && tileDataArray[x - 1, y + 1].getCurrentPiece() != null && tileDataArray[x - 1, y + 1].getCurrentPiece().team == 0)
+                if (y < 7 && tileDataArray[x - 1, y + 1].currentPiece != null && tileDataArray[x - 1, y + 1].currentPiece.team == 0)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[x - 1, y + 1], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardTaken));
                 //Check if we can attack on the right
-                if (y > 0 && tileDataArray[x - 1, y - 1].getCurrentPiece() != null && tileDataArray[x - 1, y - 1].getCurrentPiece().team == 0)
+                if (y > 0 && tileDataArray[x - 1, y - 1].currentPiece != null && tileDataArray[x - 1, y - 1].currentPiece.team == 0)
                     if (kingIsInCheck(movePiece(tile, tileDataArray[x - 1, y - 1], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardTaken));
             }
 
             //Check for en passen
             if (pawnDoubleMoveLastTurn()
-                && tile.getXPosition() == lastMove.endTile.getXPosition()
-                && Mathf.Abs(tile.getYPosition() - lastMove.endTile.getYPosition()) == 1)
+                && tile.x == lastMove.endTile.x
+                && Mathf.Abs(tile.y - lastMove.endTile.y) == 1)
             {
-                if (kingIsInCheck(movePiece(tile, tileDataArray[tile.getXPosition() - 1, lastMove.endTile.getYPosition()], tileDataArray), team) == false)
+                if (kingIsInCheck(movePiece(tile, tileDataArray[tile.x - 1, lastMove.endTile.y], tileDataArray), team) == false)
                     options.Add(new MovementData(tile,
-                        tileDataArray[tile.getXPosition() - 1, lastMove.endTile.getYPosition()],
+                        tileDataArray[tile.x - 1, lastMove.endTile.y],
                         StateChange.EnPassen,
-                        tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
+                        tileDataArray[lastMove.endTile.x, lastMove.endTile.y]));
             }
         }
         foreach (MovementData data in options) printMovementData(data);
@@ -315,13 +313,13 @@ public class PossiblePositionManager : MonoBehaviour {
         string output = "";
 
         output += "Printing MovementData: \n";
-        output += "Starting Tile: " + data.startTile.getXPosition() + "/" + data.startTile.getYPosition();
-        if (data.startTile.getCurrentPiece() == null) output += "(Null) ";
-        else output += "(" + data.startTile.getCurrentPiece().type.ToString() + ") ";
+        output += "Starting Tile: " + data.startTile.x + "/" + data.startTile.y;
+        if (data.startTile.currentPiece == null) output += "(Null) ";
+        else output += "(" + data.startTile.currentPiece.type.ToString() + ") ";
         output += "  -->  ";
-        output += "End Tile: " + data.endTile.getXPosition() + "/" + data.endTile.getYPosition();
-        if (data.endTile.getCurrentPiece() == null) output += "(Null) ";
-        else output += "(" + data.endTile.getCurrentPiece().type.ToString() + ") ";
+        output += "End Tile: " + data.endTile.x + "/" + data.endTile.y;
+        if (data.endTile.currentPiece == null) output += "(Null) ";
+        else output += "(" + data.endTile.currentPiece.type.ToString() + ") ";
         output += "\n Movement Type: " + data.movementType.ToString();
 
         Debug.Log(output);
@@ -337,15 +335,15 @@ public class PossiblePositionManager : MonoBehaviour {
     private List<MovementData> getRookTiles (Tile tile, Tile[,] tileDataArray)
     {
         List<MovementData> options = new List<MovementData>();
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
-        Team team = tile.getCurrentPiece().team;
+        int x = tile.x;
+        int y = tile.y;
+        Team team = tile.currentPiece.team;
 
         //Iterate along positive X
         for (int i = x + 1; i < 8; i++)
         {
             //If the next in order is empty
-            if (tileDataArray[i, y].getCurrentPiece() == null)
+            if (tileDataArray[i, y].currentPiece == null)
             {
                 //Add it
                 if (kingIsInCheck(movePiece(tile, tileDataArray[i, y], tileDataArray), team) == false)
@@ -355,7 +353,7 @@ public class PossiblePositionManager : MonoBehaviour {
             else
             {
                 //If unit found is on other team
-                if (tileDataArray[i, y].getCurrentPiece().team != team)
+                if (tileDataArray[i, y].currentPiece.team != team)
                 {
                     //We can take that unit
                     if (kingIsInCheck(movePiece(tile, tileDataArray[i, y], tileDataArray), team) == false)
@@ -371,7 +369,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = x - 1; i >= 0; i--)
         {            
             //If the next in order is empty
-            if (tileDataArray[i, y].getCurrentPiece() == null)
+            if (tileDataArray[i, y].currentPiece == null)
             {
                 //Add it
                 if (kingIsInCheck(movePiece(tile, tileDataArray[i, y], tileDataArray), team) == false)
@@ -381,7 +379,7 @@ public class PossiblePositionManager : MonoBehaviour {
             else
             {
                 //If unit found is on other team
-                if (tileDataArray[i, y].getCurrentPiece().team != team)
+                if (tileDataArray[i, y].currentPiece.team != team)
                 {
                     //We can take that unit
                     if (kingIsInCheck(movePiece(tile, tileDataArray[i, y], tileDataArray), team) == false)
@@ -397,7 +395,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = y + 1; i < 8; i++)
         {
             //If the next in order is empty
-            if (tileDataArray[x, i].getCurrentPiece() == null)
+            if (tileDataArray[x, i].currentPiece == null)
             {
                 //Add it
                 if (kingIsInCheck(movePiece(tile, tileDataArray[x, i], tileDataArray), team) == false)
@@ -407,7 +405,7 @@ public class PossiblePositionManager : MonoBehaviour {
             else
             {
                 //If unit found is on other team
-                if (tileDataArray[x, i].getCurrentPiece().team != team)
+                if (tileDataArray[x, i].currentPiece.team != team)
                 {
                     //We can take that unit
                     if (kingIsInCheck(movePiece(tile, tileDataArray[x, i], tileDataArray), team) == false)
@@ -423,7 +421,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = y - 1; i >= 0; i--)
         {
             //If the next in order is empty
-            if (tileDataArray[x, i].getCurrentPiece() == null)
+            if (tileDataArray[x, i].currentPiece == null)
             {
                 //Add it
                 if (kingIsInCheck(movePiece(tile, tileDataArray[x, i], tileDataArray), team) == false)
@@ -433,7 +431,7 @@ public class PossiblePositionManager : MonoBehaviour {
             else
             {
                 //If unit found is on other team
-                if (tileDataArray[x, i].getCurrentPiece().team != team)
+                if (tileDataArray[x, i].currentPiece.team != team)
                 {
                     //We can take that unit
                     if (kingIsInCheck(movePiece(tile, tileDataArray[x, i], tileDataArray), team) == false)
@@ -459,9 +457,9 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         List<MovementData> options = new List<MovementData>();
 
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
-        Team team = tile.getCurrentPiece().team;
+        int x = tile.x;
+        int y = tile.y;
+        Team team = tile.currentPiece.team;
 
         Tile t;
 
@@ -523,15 +521,15 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         List<MovementData> options = new List<MovementData>();
 
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
-        Team team = tile.getCurrentPiece().team;
+        int x = tile.x;
+        int y = tile.y;
+        Team team = tile.currentPiece.team;
 
         //Check x and y in +/+ direction
         for (int i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++)
         {
             //Empty space to move to
-            if (tileDataArray[i, j].getCurrentPiece() == null)
+            if (tileDataArray[i, j].currentPiece == null)
             {
                 if (kingIsInCheck(movePiece(tile, tileDataArray[i, j], tileDataArray), team) == false)
                     options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
@@ -539,7 +537,7 @@ public class PossiblePositionManager : MonoBehaviour {
             //otherwise there's a piece in the way
             else
             {
-                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                if (tileDataArray[i, j].currentPiece.team != team)
                 {
                     if (kingIsInCheck(movePiece(tile, tileDataArray[i, j], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
@@ -553,7 +551,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = x - 1, j = y - 1; i >= 0 && j >= 0; i--, j--)
         {
             //Empty space to move to
-            if (tileDataArray[i, j].getCurrentPiece() == null)
+            if (tileDataArray[i, j].currentPiece == null)
             {
                 if (kingIsInCheck(movePiece(tile, tileDataArray[i, j], tileDataArray), team) == false)
                     options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
@@ -561,7 +559,7 @@ public class PossiblePositionManager : MonoBehaviour {
             //otherwise there's a piece in the way
             else
             {
-                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                if (tileDataArray[i, j].currentPiece.team != team)
                 {
                     if (kingIsInCheck(movePiece(tile, tileDataArray[i, j], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
@@ -575,7 +573,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = x + 1, j = y - 1; i < 8 && j >= 0; i++, j--)
         {
             //Empty space to move to
-            if (tileDataArray[i, j].getCurrentPiece() == null)
+            if (tileDataArray[i, j].currentPiece == null)
             {
                 if (kingIsInCheck(movePiece(tile, tileDataArray[i, j], tileDataArray), team) == false)
                     options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
@@ -583,7 +581,7 @@ public class PossiblePositionManager : MonoBehaviour {
             //otherwise there's a piece in the way
             else
             {
-                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                if (tileDataArray[i, j].currentPiece.team != team)
                 {
                     if (kingIsInCheck(movePiece(tile, tileDataArray[i, j], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
@@ -597,7 +595,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = x - 1, j = y + 1; i >= 0 && j < 8; i--, j++)
         {
             //Empty space to move to
-            if (tileDataArray[i, j].getCurrentPiece() == null)
+            if (tileDataArray[i, j].currentPiece == null)
             {
                 if (kingIsInCheck(movePiece(tile, tileDataArray[i, j], tileDataArray), team) == false)
                     options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
@@ -605,7 +603,7 @@ public class PossiblePositionManager : MonoBehaviour {
             //otherwise there's a piece in the way
             else
             {
-                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                if (tileDataArray[i, j].currentPiece.team != team)
                 {
                     if (kingIsInCheck(movePiece(tile, tileDataArray[i, j], tileDataArray), team) == false)
                         options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
@@ -649,16 +647,16 @@ public class PossiblePositionManager : MonoBehaviour {
         List<MovementData> options = new List<MovementData>();
         Tile t;
 
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
-        Team team = tile.getCurrentPiece().team;
+        int x = tile.x;
+        int y = tile.y;
+        Team team = tile.currentPiece.team;
 
         //Check position 1/1
         t = positionHelper(x + 1, y + 1, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardTaken));
@@ -669,7 +667,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x, y + 1], StateChange.StandardTaken));
@@ -680,7 +678,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardTaken));
@@ -691,7 +689,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardTaken));
@@ -702,7 +700,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardTaken));
@@ -713,7 +711,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardTaken));
@@ -724,7 +722,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardTaken));
@@ -735,7 +733,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardTaken));
@@ -756,7 +754,7 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         if (x > 7 || x < 0 || y > 7 || y < 0) return null;
 
-        if (tileDataArray[x, y].getCurrentPiece() == null || tileDataArray[x, y].getCurrentPiece().team != team)
+        if (tileDataArray[x, y].currentPiece == null || tileDataArray[x, y].currentPiece.team != team)
             return tileDataArray[x, y];
         else
             return null;
@@ -773,9 +771,9 @@ public class PossiblePositionManager : MonoBehaviour {
 
         //Make sure we're checking a pawn
         if (lastMove.movementType == StateChange.EnPassen) return false;
-        if (lastMove.endTile.getCurrentPiece().type != PieceTypes.Pawn) return false;
+        if (lastMove.endTile.currentPiece.type != PieceTypes.Pawn) return false;
 
-        return Mathf.Abs(lastMove.startTile.getXPosition() - lastMove.endTile.getXPosition()) == 2;
+        return Mathf.Abs(lastMove.startTile.x - lastMove.endTile.x) == 2;
     }
 
     /// <summary>
@@ -790,8 +788,8 @@ public class PossiblePositionManager : MonoBehaviour {
         foreach (Tile tile in gameBoard)
         {
             //Only run on hostile pieces
-            if (tile.getCurrentPiece() == null) continue;
-            if (tile.getCurrentPiece().team == team) continue;
+            if (tile.currentPiece == null) continue;
+            if (tile.currentPiece.team == team) continue;
 
             //Get Tiles the piece can move to
             List<MovementData> options = new List<MovementData>();
@@ -802,7 +800,7 @@ public class PossiblePositionManager : MonoBehaviour {
             {
                 if (movement.movementType == StateChange.StandardTaken)
                 {
-                    if (movement.endTile.getCurrentPiece().type == PieceTypes.King)
+                    if (movement.endTile.currentPiece.type == PieceTypes.King)
                         return true;
                 }
             }
@@ -823,8 +821,8 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         Tile[,] newBoard = AI_Interface.AC_getCopyOfBoard(tileDataArray);
 
-        newBoard[end.getXPosition(), end.getYPosition()].setCurrentPiece(newBoard[start.getXPosition(), start.getYPosition()].getCurrentPiece());
-        newBoard[start.getXPosition(), start.getYPosition()].setCurrentPiece(null);
+        newBoard[end.x, end.y].currentPiece = newBoard[start.x, start.y].currentPiece;
+        newBoard[start.x, start.y].currentPiece = null;
 
         return newBoard;
     }
@@ -840,7 +838,7 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns></returns>
     internal List<MovementData> getPossibleTilesRaw(Tile tile, Tile[,] currentTiles)
     {
-        switch (tile.getCurrentPiece().type)
+        switch (tile.currentPiece.type)
         {
             case PieceTypes.Pawn:
                 return getPawnTilesRaw(tile, currentTiles);
@@ -856,7 +854,7 @@ public class PossiblePositionManager : MonoBehaviour {
                 return getKingTilesRaw(tile, currentTiles);
             default:
                 Debug.LogError("CODE ERROR - Failed Check - PossiblePositionManager failed to match the PiecesType ENUM when returning possible positions" +
-                    "for unit " + tile.getCurrentPiece().type + " :: " + gameObject.name);
+                    "for unit " + tile.currentPiece.type + " :: " + gameObject.name);
                 return new List<MovementData>();
         }
     }
@@ -871,9 +869,9 @@ public class PossiblePositionManager : MonoBehaviour {
     private List<MovementData> getPawnTilesRaw(Tile tile, Tile[,] tileDataArray)
     {
         List<MovementData> options = new List<MovementData>();
-        Team team = tile.getCurrentPiece().team;
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
+        Team team = tile.currentPiece.team;
+        int x = tile.x;
+        int y = tile.y;
 
 
         //Player pieces
@@ -882,15 +880,15 @@ public class PossiblePositionManager : MonoBehaviour {
             //Pawn still at starting position
             if (x == 1)
             {
-                if (tileDataArray[2, y].getCurrentPiece() == null)
+                if (tileDataArray[2, y].currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[2, y], StateChange.StandardMovement));
-                if (tileDataArray[2, y].getCurrentPiece() == null && tileDataArray[3, y].getCurrentPiece() == null)
+                if (tileDataArray[2, y].currentPiece == null && tileDataArray[3, y].currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[3, y], StateChange.StandardMovement));
             }
             //Pawn is out on the board, check for forwards movement
             else
             {
-                if (tileDataArray[x + 1, y].getCurrentPiece() == null)
+                if (tileDataArray[x + 1, y].currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
             }
 
@@ -898,22 +896,22 @@ public class PossiblePositionManager : MonoBehaviour {
             if (x < 7)
             {
                 //Check if we can attack on the right
-                if (y < 7 && tileDataArray[x + 1, y + 1].getCurrentPiece() != null && tileDataArray[x + 1, y + 1].getCurrentPiece().team == Team.AI)
+                if (y < 7 && tileDataArray[x + 1, y + 1].currentPiece != null && tileDataArray[x + 1, y + 1].currentPiece.team == Team.AI)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardTaken));
                 //Check if we can attack on the left
-                if (y > 0 && tileDataArray[x + 1, y - 1].getCurrentPiece() != null && tileDataArray[x + 1, y - 1].getCurrentPiece().team == Team.AI)
+                if (y > 0 && tileDataArray[x + 1, y - 1].currentPiece != null && tileDataArray[x + 1, y - 1].currentPiece.team == Team.AI)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardTaken)); ;
             }
 
             //Check for en passen
             if (pawnDoubleMoveLastTurn()                                                    //Last move enemy pawn double moved from start
-                && tile.getXPosition() == lastMove.endTile.getXPosition()                   //Make sure pawns are on the same row
-                && Mathf.Abs(tile.getYPosition() - lastMove.endTile.getYPosition()) == 1)    //Make sure pawns are beside each other
+                && tile.x == lastMove.endTile.x                   //Make sure pawns are on the same row
+                && Mathf.Abs(tile.y - lastMove.endTile.y) == 1)    //Make sure pawns are beside each other
             {
                 options.Add(new MovementData(tile,
-                    tileDataArray[tile.getXPosition() + 1, lastMove.endTile.getYPosition()],
+                    tileDataArray[tile.x + 1, lastMove.endTile.y],
                     StateChange.EnPassen,
-                    tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
+                    tileDataArray[lastMove.endTile.x, lastMove.endTile.y]));
             }
         }
         //Moving AI pieces
@@ -922,15 +920,15 @@ public class PossiblePositionManager : MonoBehaviour {
             //Pawn at starting position
             if (x == 6)
             {
-                if (tileDataArray[5, y].getCurrentPiece() == null)
+                if (tileDataArray[5, y].currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[5, y], StateChange.StandardMovement));
-                if (tileDataArray[5, y].getCurrentPiece() == null && tileDataArray[4, y].getCurrentPiece() == null)
+                if (tileDataArray[5, y].currentPiece == null && tileDataArray[4, y].currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[4, y], StateChange.StandardMovement));
             }
             //Otherwise pawn out on board
             else
             {
-                if (tileDataArray[x - 1, y].getCurrentPiece() == null)
+                if (tileDataArray[x - 1, y].currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
             }
 
@@ -938,22 +936,22 @@ public class PossiblePositionManager : MonoBehaviour {
             if (x > 0)
             {
                 //Check if we can attack on the left
-                if (y < 7 && tileDataArray[x - 1, y + 1].getCurrentPiece() != null && tileDataArray[x - 1, y + 1].getCurrentPiece().team == 0)
+                if (y < 7 && tileDataArray[x - 1, y + 1].currentPiece != null && tileDataArray[x - 1, y + 1].currentPiece.team == 0)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardTaken));
                 //Check if we can attack on the right
-                if (y > 0 && tileDataArray[x - 1, y - 1].getCurrentPiece() != null && tileDataArray[x - 1, y - 1].getCurrentPiece().team == 0)
+                if (y > 0 && tileDataArray[x - 1, y - 1].currentPiece != null && tileDataArray[x - 1, y - 1].currentPiece.team == 0)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardTaken));
             }
 
             //Check for en passen
             if (pawnDoubleMoveLastTurn()
-                && tile.getXPosition() == lastMove.endTile.getXPosition()
-                && Mathf.Abs(tile.getYPosition() - lastMove.endTile.getYPosition()) == 1)
+                && tile.x == lastMove.endTile.x
+                && Mathf.Abs(tile.y - lastMove.endTile.y) == 1)
             {
                 options.Add(new MovementData(tile,
-                    tileDataArray[tile.getXPosition() - 1, lastMove.endTile.getYPosition()],
+                    tileDataArray[tile.x - 1, lastMove.endTile.y],
                     StateChange.EnPassen,
-                    tileDataArray[lastMove.endTile.getXPosition(), lastMove.endTile.getYPosition()]));
+                    tileDataArray[lastMove.endTile.x, lastMove.endTile.y]));
             }
         }
 
@@ -970,15 +968,15 @@ public class PossiblePositionManager : MonoBehaviour {
     private List<MovementData> getRookTilesRaw(Tile tile, Tile[,] tileDataArray)
     {
         List<MovementData> options = new List<MovementData>();
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
-        Team team = tile.getCurrentPiece().team;
+        int x = tile.x;
+        int y = tile.y;
+        Team team = tile.currentPiece.team;
 
         //Iterate along positive X
         for (int i = x + 1; i < 8; i++)
         {
             //If the next in order is empty
-            if (tileDataArray[i, y].getCurrentPiece() == null)
+            if (tileDataArray[i, y].currentPiece == null)
             {
                 //Add it
                 options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardMovement));
@@ -987,7 +985,7 @@ public class PossiblePositionManager : MonoBehaviour {
             else
             {
                 //If unit found is on other team
-                if (tileDataArray[i, y].getCurrentPiece().team != team)
+                if (tileDataArray[i, y].currentPiece.team != team)
                 {
                     //We can take that unit
                     options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardTaken));
@@ -1002,7 +1000,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = x - 1; i >= 0; i--)
         {
             //If the next in order is empty
-            if (tileDataArray[i, y].getCurrentPiece() == null)
+            if (tileDataArray[i, y].currentPiece == null)
             {
                 //Add it
                 options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardMovement));
@@ -1011,7 +1009,7 @@ public class PossiblePositionManager : MonoBehaviour {
             else
             {
                 //If unit found is on other team
-                if (tileDataArray[i, y].getCurrentPiece().team != team)
+                if (tileDataArray[i, y].currentPiece.team != team)
                 {
                     //We can take that unit
                     options.Add(new MovementData(tile, tileDataArray[i, y], StateChange.StandardTaken));
@@ -1026,7 +1024,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = y + 1; i < 8; i++)
         {
             //If the next in order is empty
-            if (tileDataArray[x, i].getCurrentPiece() == null)
+            if (tileDataArray[x, i].currentPiece == null)
             {
                 //Add it
                 options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardMovement));
@@ -1035,7 +1033,7 @@ public class PossiblePositionManager : MonoBehaviour {
             else
             {
                 //If unit found is on other team
-                if (tileDataArray[x, i].getCurrentPiece().team != team)
+                if (tileDataArray[x, i].currentPiece.team != team)
                 {
                     //We can take that unit
                     options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardTaken));
@@ -1050,7 +1048,7 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = y - 1; i >= 0; i--)
         {
             //If the next in order is empty
-            if (tileDataArray[x, i].getCurrentPiece() == null)
+            if (tileDataArray[x, i].currentPiece == null)
             {
                 //Add it
                 options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardMovement));
@@ -1059,7 +1057,7 @@ public class PossiblePositionManager : MonoBehaviour {
             else
             {
                 //If unit found is on other team
-                if (tileDataArray[x, i].getCurrentPiece().team != team)
+                if (tileDataArray[x, i].currentPiece.team != team)
                 {
                     //We can take that unit
                     options.Add(new MovementData(tile, tileDataArray[x, i], StateChange.StandardTaken));
@@ -1084,9 +1082,9 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         List<MovementData> options = new List<MovementData>();
 
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
-        Team team = tile.getCurrentPiece().team;
+        int x = tile.x;
+        int y = tile.y;
+        Team team = tile.currentPiece.team;
 
         Tile t;
 
@@ -1140,22 +1138,22 @@ public class PossiblePositionManager : MonoBehaviour {
     {
         List<MovementData> options = new List<MovementData>();
 
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
-        Team team = tile.getCurrentPiece().team;
+        int x = tile.x;
+        int y = tile.y;
+        Team team = tile.currentPiece.team;
 
         //Check x and y in +/+ direction
         for (int i = x + 1, j = y + 1; i < 8 && j < 8; i++, j++)
         {
             //Empty space to move to
-            if (tileDataArray[i, j].getCurrentPiece() == null)
+            if (tileDataArray[i, j].currentPiece == null)
             {
                 options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
             }
             //otherwise there's a piece in the way
             else
             {
-                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                if (tileDataArray[i, j].currentPiece.team != team)
                 {
                     options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
                 }
@@ -1168,14 +1166,14 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = x - 1, j = y - 1; i >= 0 && j >= 0; i--, j--)
         {
             //Empty space to move to
-            if (tileDataArray[i, j].getCurrentPiece() == null)
+            if (tileDataArray[i, j].currentPiece == null)
             {
                 options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
             }
             //otherwise there's a piece in the way
             else
             {
-                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                if (tileDataArray[i, j].currentPiece.team != team)
                 {
                     options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
                 }
@@ -1188,14 +1186,14 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = x + 1, j = y - 1; i < 8 && j >= 0; i++, j--)
         {
             //Empty space to move to
-            if (tileDataArray[i, j].getCurrentPiece() == null)
+            if (tileDataArray[i, j].currentPiece == null)
             {
                 options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
             }
             //otherwise there's a piece in the way
             else
             {
-                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                if (tileDataArray[i, j].currentPiece.team != team)
                 {
                     options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
                 }
@@ -1208,14 +1206,14 @@ public class PossiblePositionManager : MonoBehaviour {
         for (int i = x - 1, j = y + 1; i >= 0 && j < 8; i--, j++)
         {
             //Empty space to move to
-            if (tileDataArray[i, j].getCurrentPiece() == null)
+            if (tileDataArray[i, j].currentPiece == null)
             {
                 options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardMovement));
             }
             //otherwise there's a piece in the way
             else
             {
-                if (tileDataArray[i, j].getCurrentPiece().team != team)
+                if (tileDataArray[i, j].currentPiece.team != team)
                 {
                     options.Add(new MovementData(tile, tileDataArray[i, j], StateChange.StandardTaken));
                 }
@@ -1258,16 +1256,16 @@ public class PossiblePositionManager : MonoBehaviour {
         List<MovementData> options = new List<MovementData>();
         Tile t;
 
-        int x = tile.getXPosition();
-        int y = tile.getYPosition();
-        Team team = tile.getCurrentPiece().team;
+        int x = tile.x;
+        int y = tile.y;
+        Team team = tile.currentPiece.team;
 
         //Check position 1/1
         t = positionHelper(x + 1, y + 1, team, tileDataArray);
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardTaken));
@@ -1278,7 +1276,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x, y + 1], StateChange.StandardTaken));
@@ -1289,7 +1287,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardTaken));
@@ -1300,7 +1298,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardTaken));
@@ -1311,7 +1309,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardTaken));
@@ -1322,7 +1320,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardTaken));
@@ -1333,7 +1331,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardTaken));
@@ -1344,7 +1342,7 @@ public class PossiblePositionManager : MonoBehaviour {
         if (t != null)
             if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
             {
-                if (t.getCurrentPiece() == null)
+                if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardTaken));

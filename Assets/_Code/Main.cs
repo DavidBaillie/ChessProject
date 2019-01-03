@@ -32,7 +32,7 @@ public class Main {
 		Debug.Log("START FOREACH");
 		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a list of all pieces
 			Debug.Log("IN FOREACH");
-			if (tiles.getCurrentPiece().team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
+			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
 			Debug.Log("Options Count: " + options.Count);
 			foreach (MovementData move in options) { // for each movement option
@@ -69,7 +69,7 @@ public class Main {
 		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
 		int currentValue = int.MinValue; // Setting current value to negative inifinity
 		foreach (Tile tiles in piecesList(boardCopy)) {
-			if (tiles.getCurrentPiece().team == Team.Player) continue; // if player team, skip and iterate again
+			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
 			foreach (MovementData choice in options) {	
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board after piece move
@@ -87,7 +87,7 @@ public class Main {
 		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree i.e. there are no more objects to search/checkmate, or even check (same issue as in max)
 		int currentValue = int.MaxValue; // Setting current value to positive inifinity
 		foreach (Tile tiles in piecesList(boardCopy)) {
-			if (tiles.getCurrentPiece().team == Team.AI) continue; // if AI team, skip and iterate again
+			if (tiles.currentPiece.team == Team.AI) continue; // if AI team, skip and iterate again
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
 			foreach (MovementData choice in options) {
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board
@@ -105,7 +105,7 @@ public class Main {
 		List<Tile> betterList = new List<Tile>();
 		for (int i = 0; i < 8; i++) {
 			for (int k = 0; k < 8; k++) {
-				if (arr[i,k].getCurrentPiece() != null) {
+				if (arr[i,k].currentPiece != null) {
 					Debug.Log("Adding to list");
 					betterList.Add(arr[i, k]);
 				} //else //Debug.Log("No Add to list");

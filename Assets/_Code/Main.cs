@@ -22,10 +22,6 @@ public class Main {
 	// Methods ------------------------------------------------------------
 
 	private MovementData searchAlphaBeta(Tile[,] boardCopy) {
-
-
-
-		Debug.Log(boardCopy.Length);
 		List<Choice> allChoices = new List<Choice>(); // create a list of moves with their associated values
 													  // for each piece on the board
 		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a list of all pieces

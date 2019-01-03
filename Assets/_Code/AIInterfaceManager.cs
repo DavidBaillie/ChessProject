@@ -6,6 +6,7 @@ using System.Threading;
 public class AIInterfaceManager : MonoBehaviour {
 
     private PossiblePositionManager positionManager;
+    private GameBoardManager boardManager;
     private MovementData finalChoice;
 
     private GameObject holder;
@@ -51,6 +52,7 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         //Save positions manager
         this.positionManager = positionManager;
+        boardManager = GetComponent<GameBoardManager>();
         //updateBoardStatus();
 
         //Spin up thread
@@ -200,7 +202,23 @@ public class AIInterfaceManager : MonoBehaviour {
     /// <returns>Integer score of board</returns>
     internal int AC_getScoreOfBoard (Tile[,] inputArray)
     {
-        return 0;
+        float score = 0f;
+
+        foreach (Tile tile in inputArray)
+        {
+            if (tile.currentPiece == null) continue;
+
+            if (tile.currentPiece.team == Team.AI)
+            {
+                score += boardManager.getPieceScore(tile.currentPiece.type);
+            }
+            else
+            {
+                score -= boardManager.getPieceScore(tile.currentPiece.type);
+            }
+        }
+
+        return (int)score;
     }
 
     /// <summary>

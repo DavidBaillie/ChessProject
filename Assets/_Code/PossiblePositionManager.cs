@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -295,9 +296,18 @@ public class PossiblePositionManager : MonoBehaviour {
             //Otherwise pawn out on board
             else
             {
-                if (tileDataArray[x - 1, y].currentPiece == null)
-                    if (kingIsInCheck(movePiece(tile, tileDataArray[x - 1, y], tileDataArray), team) == false)
-                        options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
+                //Standard Pawn Movement
+                if (x > 0)
+                {
+                    if (tileDataArray[x - 1, y].currentPiece == null)
+                        if (kingIsInCheck(movePiece(tile, tileDataArray[x - 1, y], tileDataArray), team) == false)
+                            options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
+                }
+                //Otherwise we're promoting the pawn
+                else
+                {
+                    options.Add(new MovementData());
+                }
             }
 
             //Check for side motion
@@ -325,7 +335,6 @@ public class PossiblePositionManager : MonoBehaviour {
                         tileDataArray[lastMove.endTile.x, lastMove.endTile.y]));
             }
         }
-        foreach (MovementData data in options) printMovementData(data);
         return options;
     }
 
@@ -775,7 +784,7 @@ public class PossiblePositionManager : MonoBehaviour {
 
         //Make sure we're checking a pawn
         if (lastMove.movementType == StateChange.EnPassen) return false;
-        if (lastMove.endTile.currentPiece.type != PieceTypes.Pawn) return false;
+        if (lastMove.startTile.currentPiece.type != PieceTypes.Pawn) return false;
 
         return Mathf.Abs(lastMove.startTile.x - lastMove.endTile.x) == 2;
     }
@@ -932,8 +941,16 @@ public class PossiblePositionManager : MonoBehaviour {
             //Otherwise pawn out on board
             else
             {
-                if (tileDataArray[x - 1, y].currentPiece == null)
-                    options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
+                try
+                {
+                    if (tileDataArray[x - 1, y].currentPiece == null)
+                        options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
+                } catch (IndexOutOfRangeException e)
+                {
+                    Debug.Log("Caught Index Out of Range \n" +
+                        "x = " + x + "\n" +
+                        "y = " + y);
+                }
             }
 
             //Check for side motion

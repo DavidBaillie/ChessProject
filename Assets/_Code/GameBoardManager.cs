@@ -14,6 +14,13 @@ public class GameBoardManager : MonoBehaviour {
     public GameObject Knight;
     public GameObject King;
     public GameObject Queen;
+    [Space(5)]
+    public float pawnValue;
+    public float rookValue;
+    public float bishopValue;
+    public float knightValue;
+    public float kingValue;
+    public float queenValue;
     //Inspector Vars////
 
     private WorldTile[,] gameBoard;
@@ -347,5 +354,34 @@ public class GameBoardManager : MonoBehaviour {
         //Assign WorldPiece to new WorldTile 
         end.currentPiece = start.currentPiece;
         start.currentPiece = null;
+    }
+
+
+
+    /// <summary>
+    /// Returns the value of the provided PieceType
+    /// </summary>
+    /// <param name="type">PieceType to return value of</param>
+    /// <returns>float representing Piece value</returns>
+    internal float getPieceScore (PieceTypes type)
+    {
+        switch (type)
+        {
+            case PieceTypes.Pawn:
+                return pawnValue;
+            case PieceTypes.Rook:
+                return rookValue;
+            case PieceTypes.Knight:
+                return knightValue;
+            case PieceTypes.Bishop:
+                return bishopValue;
+            case PieceTypes.King:
+                return kingValue;
+            case PieceTypes.Queen:
+                return queenValue;
+        }
+
+        //Default return, should never run
+        return 0f;
     }
 }

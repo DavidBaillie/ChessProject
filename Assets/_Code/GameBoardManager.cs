@@ -17,6 +17,15 @@ public class GameBoardManager : MonoBehaviour {
     //Inspector Vars////
 
     private WorldTile[,] gameBoard;
+    private PossiblePositionManager positionManager;
+
+    /// <summary>
+    /// Called on object creation
+    /// </summary>
+    private void Awake()
+    {
+        positionManager = GetComponent<PossiblePositionManager>();
+    }
 
 
     /// <summary>
@@ -24,8 +33,12 @@ public class GameBoardManager : MonoBehaviour {
     /// </summary>
 	internal void createStandardGame ()
     {
+        //Create board and add pieces
         createBoard();
         addStandardPieces();
+
+        //Initialize the PossiblePositionManager to kick off the core game loop
+        positionManager.construct(getTileCopyOfGameBoard());
     }
 
     /// <summary>
@@ -266,5 +279,70 @@ public class GameBoardManager : MonoBehaviour {
                     break;
             }
         }
+    }
+
+
+
+    /// <summary>
+    /// Called to get a copy of the game board in the for of the Tile class. 
+    /// </summary>
+    /// <returns>2D Tile array representing the game board</returns>
+    internal Tile[,] getTileCopyOfGameBoard ()
+    {
+        Tile[,] copy = new Tile[8, 8];
+
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                //Built Piece class as either null or having data
+                Piece piece = null;
+                if (gameBoard[x,y].currentPiece != null)
+                {
+                    piece = new Piece(gameBoard[x, y].currentPiece.type, gameBoard[x, y].currentPiece.team);
+                }
+
+                //Save Tile with correct Piece attached 
+                copy[x, y] = new Tile(piece, x, y);
+            }
+        }
+
+        return copy;
+    }
+
+    /// <summary>
+    /// Removes the piece at the provided coordinates from the board
+    /// </summary>
+    /// <param name="x">X Coordinate of WorldTile</param>
+    /// <param name="y">Y Coordinate of WorldTIle</param>
+    internal void removeUnit (int x, int y)
+    {
+        //Don't try accessing things if there's no WorldPiece
+        if (gameBoard[x, y].currentPiece == null) return;
+
+        //TODO - Move unit off board instead of destroying it
+        Destroy(gameBoard[x, y].currentPiece.gameObject, 0.5f);
+        gameBoard[x, y].currentPiece = null;
+    }
+
+    /// <summary>
+    /// Moves the Piece at WorldTile (x1,y1) to WorldTile (x2,y2)
+    /// </summary>
+    /// <param name="x1">X Coordinate of Start WorldTile</param>
+    /// <param name="y1">Y Coordinate of Start WorldTile</param>
+    /// <param name="x2">X Coordinate of End WorldTile</param>
+    /// <param name="y2">Y Coordinate of End WorldTile</param>
+    internal void moveUnit (int x1, int y1, int x2, int y2)
+    {
+        //Save references
+        WorldTile start = gameBoard[x1, y1];
+        WorldTile end = gameBoard[x2, y2];
+
+        //Move Piece GameObject to new position
+        start.currentPiece.targetPosition = end.gameObject.transform.position + (Vector3.up / 2);
+
+        //Assign WorldPiece to new WorldTile 
+        end.currentPiece = start.currentPiece;
+        start.currentPiece = null;
     }
 }

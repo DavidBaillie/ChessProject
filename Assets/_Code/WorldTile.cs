@@ -6,7 +6,7 @@ public class WorldTile : MonoBehaviour {
 
     internal int x;
     internal int y;
-    internal WorldPiece currentPiece;
+    [SerializeField]internal WorldPiece currentPiece;
 
     private Material material;
 

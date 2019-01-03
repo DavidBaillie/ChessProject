@@ -4,26 +4,31 @@ using UnityEngine;
 
 public class PossiblePositionManager : MonoBehaviour {
 
-    private AIInterfaceManager AI_Interface;
+    private AIInterfaceManager AI_Interface;    //AIInterfaceManager responsible for interfacing with AI code
+    private GameBoardManager boardManager;      //GameBoardManager responsible for Visual object interactions
 
     private bool playersTurn = true;            //Tracks if it is the AI or players turn
-    private Tile[,] boardTileArray;            //Array of Tile classes representing game board
+    private Tile[,] boardTileArray;             //Array of Tile classes representing game board
 
     private Tile currentSelectedTile;           //Data saved when the player selects a Piece/Tile to move to a new Tile
     private List<Tile> possibleTiles;           //Possible tiles to move towards based on the currentSelectedTile
 
     private MovementData lastMove;              //Previous move made before current turn
 
+
+
     /// <summary>
     /// Called when the BoardPositionInitializer finishes spawning all tiles with pieces
     /// </summary>
     /// <param name="data">Array of all tiles on board</param>
-    internal void  setTileDataArray (Tile[,] data)
+    internal void construct (Tile[,] data)
     {
         boardTileArray = data;
 
 		AI_Interface = GetComponent<AIInterfaceManager>();
         AI_Interface.initialize(this);
+
+        boardManager = GetComponent<GameBoardManager>();
     }
 
     /// <summary>
@@ -34,81 +39,42 @@ public class PossiblePositionManager : MonoBehaviour {
     internal void moveToTile(MovementData data)
     {
         //Update who's turn it is
-        if (data.startTile.getCurrentPiece().team == Team.Player) playersTurn = false;
-        else playersTurn = true;
+        playersTurn = !playersTurn;
 
+        //Save last move
         lastMove = data;
-
-        //Move pieces according to parameter data
-        Tile start, end, startTwo, endTwo;
+        
+        //Switch on MovementType to assign new positions correctly according to MovementData parameter
         switch (data.movementType)
         {
-            //Standard Movement cases
+            ////Standard Movement cases
             case StateChange.StandardMovement:
             case StateChange.StandardTaken:
-                //Remove piece taken if any and grab local tiles being referenced
-                removePiece(data.endTile);
-                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
-                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
-
-                //Move the Piece to the new Tile
-                start.getCurrentPiece().targetPosition = end.gameObject.transform.position + (Vector3.up / 2);
-                end.setCurrentPiece(start.getCurrentPiece());
-                start.setCurrentPiece(null);
+                //Remove piece taken if any call Piece to be moved
+                boardManager.removeUnit(data.endTile.x, data.endTile.y);
+                boardManager.moveUnit(data.startTile.x, data.startTile.y, data.endTile.x, data.endTile.y);
                 break;
-            //En Passen movement 
+
+            ////En Passen movement 
             case StateChange.EnPassen:
-                //Grab start and end data
-                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
-                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
-                startTwo = boardTileArray[data.secondaryChangeStart.getXPosition(),
-                    data.secondaryChangeStart.getYPosition()];
-
-                //Remove other pawn
-                removePiece(startTwo);
-
-                //Move my pawn
-                start.getCurrentPiece().targetPosition = end.gameObject.transform.position + (Vector3.up / 2);
-                end.setCurrentPiece(start.getCurrentPiece());
-                start.setCurrentPiece(null);
+                //Remove secondary pawn and then move my pawn to new position
+                boardManager.removeUnit(data.secondaryChangeStart.x, data.secondaryChangeStart.y);
+                boardManager.moveUnit(data.startTile.x, data.startTile.y, data.endTile.x, data.endTile.y);
                 break;
-            //Castling movement
-            case StateChange.Castling:
-                //Grab start and end data
-                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
-                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
-                startTwo = boardTileArray[data.secondaryChangeStart.getXPosition(),
-                    data.secondaryChangeStart.getYPosition()];
-                endTwo = boardTileArray[data.secondaryChangeEnd.getXPosition(),
-                    data.secondaryChangeEnd.getYPosition()];
 
+            ////Castling movement
+            case StateChange.Castling:
                 //Move King
-                start.getCurrentPiece().targetPosition = end.gameObject.transform.position + (Vector3.up / 2);
-                end.setCurrentPiece(start.getCurrentPiece());
-                start.setCurrentPiece(null);
+                boardManager.moveUnit(data.startTile.x, data.startTile.y, data.endTile.x, data.endTile.y);
 
                 //Move Rook
-                startTwo.getCurrentPiece().targetPosition =
-                    endTwo.gameObject.transform.position + (Vector3.up / 2);
-                endTwo.setCurrentPiece(startTwo.getCurrentPiece());
-                startTwo.setCurrentPiece(null);
+                boardManager.moveUnit(data.secondaryChangeStart.x, data.secondaryChangeStart.y, data.secondaryChangeEnd.x, data.secondaryChangeEnd.y);
                 break;
         }
 
-		if (playersTurn == false) AI_Interface.runAI();
-    }
-
-    /// <summary>
-    /// Called when a Piece beeds to be removed from the board after being "taken"
-    /// </summary>
-    /// <param name="tile">Tile holding Piece class to remove</param>
-    private void removePiece (Tile tile)
-    {
-        if (tile.getCurrentPiece() == null) return;
-
-        //TODO - Move piece off board instead of killing it !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        Destroy(tile.getCurrentPiece().gameObject, 0.5f);
-        tile.setCurrentPiece(null);
+        //Update local game board and run AI if the Player just went
+        boardTileArray = boardManager.getTileCopyOfGameBoard();
+        if (playersTurn == false) AI_Interface.runAI();
     }
 
     #region Player Turn

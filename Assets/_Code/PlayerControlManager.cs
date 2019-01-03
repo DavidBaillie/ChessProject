@@ -6,9 +6,8 @@ public class PlayerControlManager : MonoBehaviour {
 
     private PossiblePositionManager positionsManager;
 
-    private Tile selected;
-    private Tile current;
-    private List<Tile> options;
+    private WorldTile selected;
+    private WorldTile current;
     private List<MovementData> returnedMovements;
 
     /// <summary>
@@ -17,7 +16,6 @@ public class PlayerControlManager : MonoBehaviour {
     private void Awake()
     {
         positionsManager = GetComponent<PossiblePositionManager>();
-        options = new List<Tile>();
     }
 
     /// <summary>
@@ -26,62 +24,64 @@ public class PlayerControlManager : MonoBehaviour {
     private void Update()
     {
         //Mouse left click event
-        if (Input.GetMouseButtonDown(0))
+        if (Input.GetMouseButtonDown(0) && positionsManager.isPlayersTurn())
         {
-            //Don't let the player do anything if it's not their turn
-            if (positionsManager.isPlayersTurn() == false) return;            //TODO - Uncomment this
 
             RaycastHit hit;
             if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
             {
-                current = hit.collider.gameObject.GetComponent<Tile>();
-                Debug.Log("__Selected Tile: " + current.getXPosition() + "/" + current.getYPosition());
+                registerPlayerAction(hit);
+            }
+        }
+    }
 
-                //Case when nothing selected
-                if (selected == null)
-                {
-                    //There is a valid piece to select
-                    if (current.getCurrentPiece() != null && current.getCurrentPiece().team == Team.Player)
-                    {
-                        //Save selection and get valid movement options
-                        selected = current;
-                        returnedMovements = positionsManager.getPlayerPossibleTiles
-                            (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
-                        Debug.Log("__Getting options for selected Tile: " + returnedMovements.Count);
-                    }
-                    else Debug.Log("__Selected friendly piece, doing nothing");
+    /// <summary>
+    /// If there is valid user input we take their selection and determine an action
+    /// </summary>
+    /// <param name="hit">RaycastHit of selection</param>
+    private void registerPlayerAction (RaycastHit hit)
+    {
+        current = hit.collider.gameObject.GetComponent<WorldTile>();
 
-                    return;
-                }
+        //Case where nothing is currently selected
+        if (selected == null)
+        {
+            //If the player has selected one of thier own pieces
+            if (current.currentPiece != null && current.currentPiece.team == Team.Player)
+            {
+                Debug.Log("Player is making a new piece selection --> " + current.currentPiece.type.ToString());
+                //Save selection and get valid movement options
+                selected = current;
+                returnedMovements = positionsManager.getPlayerPossibleTiles(current.x, current.y, current.currentPiece.type);
+            }
 
-                //
-                if (movementsContainTile(returnedMovements, current))
-                {
-                    Debug.Log("__Selected valid positon to move to, moving");
-                    positionsManager.moveToTile(getMovementToTile(returnedMovements, current));
-                    selected = null;
-                    current = null;
-                }
-                //Otherwise we figure out what to do other than moving a piece
-                else
-                {
-                    Debug.Log("__Selected invalid tile with previous selected");
-                    //Case where the player clicked on another one of their pieces
-                    if (current.getCurrentPiece().team == Team.Player)
-                    {
-                        Debug.Log("__Selected second friendly piece");
-                        //Change selection to new piece
-                        selected = current;
-                        returnedMovements = positionsManager.getPlayerPossibleTiles
-                            (current.getXPosition(), current.getYPosition(), current.getCurrentPiece().type);
-                    }
-                    //Otherwise clear selection
-                    else
-                    {
-                        Debug.Log("__Selected emtpy/invalid Tile, resetting selection");
-                        selected = null;
-                    }
-                }
+            return;
+        }
+
+        //Case where there is already a Piece selected and a valid movement was chosen
+        if (movementsContainTile(returnedMovements, current))
+        {
+            Debug.Log("Player made a valid movement choice, moving piece");
+            positionsManager.moveToTile(getMovementToTile(returnedMovements, current));
+            selected = null;
+            current = null;
+        }
+        //Otherwise we received an invalid movement and must decide another action
+        else
+        {
+            //Case where the player clicked on another one of their own pieces
+            if (current.currentPiece.team == Team.Player)
+            {
+                Debug.Log("Player has changed their selection --> " + current.currentPiece.type.ToString());
+                //Change selection to new piece
+                selected = current;
+                returnedMovements = positionsManager.getPlayerPossibleTiles(current.x, current.y, current.currentPiece.type);
+            }
+            //Otherwise clear selection
+            else
+            {
+                Debug.Log("Player selected an invalid tile, resetting selection");
+                selected = null;
             }
         }
     }
@@ -92,11 +92,11 @@ public class PlayerControlManager : MonoBehaviour {
     /// <param name="movements">Movement Options</param>
     /// <param name="tile">Tile to check for presence</param>
     /// <returns>If a match exists</returns>
-    private bool movementsContainTile (List<MovementData> movements, Tile tile)
+    private bool movementsContainTile (List<MovementData> movements, WorldTile tile)
     {
         foreach (MovementData move in movements)
         {
-            if (move.endTile.getXPosition() == tile.getXPosition() && move.endTile.getYPosition() == tile.getYPosition()) return true;
+            if (move.endTile.x == tile.x && move.endTile.y == tile.y) return true;
         }
 
         return false;
@@ -108,11 +108,11 @@ public class PlayerControlManager : MonoBehaviour {
     /// <param name="movements">Possible movements</param>
     /// <param name="tile">Tile to find for movement</param>
     /// <returns>MovementData containing the Tile</returns>
-    private MovementData getMovementToTile (List<MovementData> movements, Tile tile)
+    private MovementData getMovementToTile (List<MovementData> movements, WorldTile tile)
     {
         foreach (MovementData move in movements)
         {
-            if (move.endTile.getXPosition() == tile.getXPosition() && move.endTile.getYPosition() == tile.getYPosition()) return move;
+            if (move.endTile.x == tile.x && move.endTile.y == tile.y) return move;
         }
 
         return new MovementData();

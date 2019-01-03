@@ -5,7 +5,7 @@ using UnityEngine;
 public class PossiblePositionManager : MonoBehaviour {
 
     private AIInterfaceManager AI_Interface;    //AIInterfaceManager responsible for interfacing with AI code
-    private GameBoardManager boardManager;      //GameBoardManager responsible for Visual object interactions
+    internal GameBoardManager boardManager;      //GameBoardManager responsible for Visual object interactions
 
     private bool playersTurn = true;            //Tracks if it is the AI or players turn
     private Tile[,] tileGameBoard;             //Array of Tile classes representing game board

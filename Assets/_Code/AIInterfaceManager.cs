@@ -32,7 +32,7 @@ public class AIInterfaceManager : MonoBehaviour {
         
     }
 
-	//
+	//TEMP METHOD TO OFFLOAD TO MAIN THREAD
 	internal void runAI () 
 	{
 		Debug.Log("starting AI");
@@ -49,8 +49,6 @@ public class AIInterfaceManager : MonoBehaviour {
     /// </summary>
     internal void initialize (PossiblePositionManager positionManager)
     {
-        holder = new GameObject("TEMP HOLDER");
-
         //Save positions manager
         this.positionManager = positionManager;
         //updateBoardStatus();
@@ -80,7 +78,7 @@ public class AIInterfaceManager : MonoBehaviour {
     /// Returns the current Tile[,] representing the board the player is seeing. Provided board is
     /// a unique object array separate from the one tracked by the PossiblePositionManager.
     /// </summary>
-    internal Tile[,] AC_getCurrentBoard () { return AC_getCopyOfBoard(positionManager.getTileArray()); }
+    internal Tile[,] AC_getCurrentBoard () { return AC_getCopyOfBoard(positionManager.boardManager.getTileCopyOfGameBoard()); }
 
     /// <summary>
     /// Returns a copy of the provided 2D Tile array. Used to make sure a "board" can be passed
@@ -97,46 +95,18 @@ public class AIInterfaceManager : MonoBehaviour {
         {
             for (int y = 0; y < 8; y++)
             {
-                //Spin up a new Tile and GameObject to attach to
-                GameObject n = new GameObject(".");
-                n.transform.position = new Vector3(9999,9999,9999);
-                Tile t = n.AddComponent<Tile>();
-                                
-                //Assign needed data to tile
-                if (data[x,y].getCurrentPiece() != null)
-                {
-					GameObject p = new GameObject(".");
-					p.transform.position = new Vector3(999, 999, 999);
-					Piece newPiece = p.AddComponent<Piece>();
-                    newPiece.type = data[x, y].getCurrentPiece().type;
-                    newPiece.team = data[x, y].getCurrentPiece().team;
+                Piece piece = null;
+                if (data[x, y].currentPiece != null)
+                    piece = new Piece(data[x, y].currentPiece.type, data[x, y].currentPiece.team);
 
-                    t.initialize(newPiece, data[x, y].getXPosition(), data[x, y].getYPosition(), data[x, y].getTileObject());
-                    copy[x, y] = t;
-					
-                }
-                else
-                {
-                    t.initialize(null, data[x, y].getXPosition(), data[x, y].getYPosition(), data[x, y].getTileObject());
-                }
-
-                //Nest Object
-                n.transform.parent = holder.transform;
-
-                //Assign to array
-                copy[x, y] = t;
+                copy[x, y] = new Tile(piece, x, y);
             }
         }
-
-		for (int i = 0; i < 8; i++) { for (int k = 0; k < 8; k++) { if (copy[i, k].getCurrentPiece() != null) Debug.Log(i + "/" + k + " is "); } }
-
-
 		return copy;
     }
 
     /// <summary>
-    /// Used by the AI. Provided a version of the game board, the method will return a new
-    /// copy of the board with the pieces moved accoridng to the MovementData struct.
+    /// Provides a new Tile game board with a single MovementDaata applied to it
     /// </summary>
     /// <param name="data">MovementData holding movement instructions</param>
     /// <param name="arrayIn">Current version game board to be modified</param>
@@ -144,60 +114,60 @@ public class AIInterfaceManager : MonoBehaviour {
     internal Tile[,] AC_getBoardAfterMovement (MovementData data, Tile[,] arrayIn)
     {
         //Build copy of board to prevent overwrite
-        Tile[,] boardTileArray = AC_getCopyOfBoard(arrayIn);
+        Tile[,] newGameBoard = AC_getCopyOfBoard(arrayIn);
 
         //Move pieces according to parameter data
         Tile start, end, startTwo, endTwo;
         switch (data.movementType)
         {
-            //Standard Movement cases
+            ////Standard Movement cases
             case StateChange.StandardMovement:
             case StateChange.StandardTaken:
-                //Remove piece taken if any and grab local tiles being referenced
-                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
-                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
+                //Grab references for easy access
+                start = newGameBoard[data.startTile.x, data.startTile.y];
+                end = newGameBoard[data.endTile.x, data.endTile.y];
 
-                //Move the Piece to the new Tile
-                end.setCurrentPiece(start.getCurrentPiece());
-                start.setCurrentPiece(null);
+                //Move the Piece to the new Tile - Piece taken will be collected by Garbage Collector
+                end.currentPiece = start.currentPiece;
+                start.currentPiece = null;
                 break;
-            //En Passen movement 
+
+            ////En Passen movement 
             case StateChange.EnPassen:
                 //Grab start and end data
-                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
-                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
-                startTwo = boardTileArray[data.secondaryChangeStart.getXPosition(),
-                    data.secondaryChangeStart.getYPosition()];
+                start = newGameBoard[data.startTile.x, data.startTile.y];
+                end = newGameBoard[data.endTile.x, data.endTile.y];
+                startTwo = newGameBoard[data.secondaryChangeStart.x,
+                    data.secondaryChangeStart.y];
 
                 //Remove other pawn
-                startTwo.setCurrentPiece(null);
+                startTwo.currentPiece = null;
 
                 //Move my pawn
-                end.setCurrentPiece(start.getCurrentPiece());
-                start.setCurrentPiece(null);
+                end.currentPiece = start.currentPiece;
+                start.currentPiece = null;
                 break;
-            //Castling movement
+
+            ////Castling movement
             case StateChange.Castling:
                 //Grab start and end data
-                start = boardTileArray[data.startTile.getXPosition(), data.startTile.getYPosition()];
-                end = boardTileArray[data.endTile.getXPosition(), data.endTile.getYPosition()];
-                startTwo = boardTileArray[data.secondaryChangeStart.getXPosition(),
-                    data.secondaryChangeStart.getYPosition()];
-                endTwo = boardTileArray[data.secondaryChangeEnd.getXPosition(),
-                    data.secondaryChangeEnd.getYPosition()];
+                start = newGameBoard[data.startTile.x, data.startTile.y];
+                end = newGameBoard[data.endTile.x, data.endTile.y];
+                startTwo = newGameBoard[data.secondaryChangeStart.x, data.secondaryChangeStart.y];
+                endTwo = newGameBoard[data.secondaryChangeEnd.x, data.secondaryChangeEnd.y];
 
                 //Move King
-                end.setCurrentPiece(start.getCurrentPiece());
-                start.setCurrentPiece(null);
+                end.currentPiece = start.currentPiece;
+                start.currentPiece = null;
 
                 //Move Rook
-                endTwo.setCurrentPiece(startTwo.getCurrentPiece());
-                startTwo.setCurrentPiece(null);
+                endTwo.currentPiece = startTwo.currentPiece;
+                startTwo.currentPiece = null;
                 break;
         }
 
         //Return new board with pieces moved
-        return boardTileArray;
+        return newGameBoard;
     }
 
     /// <summary>
@@ -211,7 +181,7 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         //Get possible movement options
         List<MovementData> options;
-        if (tile.getCurrentPiece().team == Team.Player)
+        if (tile.currentPiece.team == Team.Player)
         {
             options = positionManager.getPlayerPossibleTiles(tile, inputArray);
         }
@@ -241,49 +211,4 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         finalChoice = data;
     }
-
-    /// <summary>
-    /// Clears all cached versions of Tiles used by the AI or other code when a copy of the Game Board is needed
-    /// </summary>
-    internal void clearCashedArrayCopies ()
-    {
-        for (int i = 0; i < holder.transform.childCount; i++)
-        {
-            Destroy(holder.transform.GetChild(i).gameObject);
-        }
-    }
 }
-
-/*
-/// <summary>
-/// Custom class dedicated to AI class interactions with game board
-/// </summary>
-internal class TileData
-{
-    internal int xCoordinate;
-    internal int yCoordinate;
-    internal PieceTypes type;
-    internal int team;
-
-    /// <summary>
-    /// Full Constructor
-    /// </summary>
-    internal TileData (int x, int y, PieceTypes type, int team)
-    {
-        xCoordinate = x;
-        yCoordinate = y;
-        this.type = type;
-        this.team = team;
-    }
-
-    /// <summary>
-    /// Partial Constructor
-    /// </summary>
-    internal TileData (int x, int y)
-    {
-        xCoordinate = x;
-        yCoordinate = y;
-        type = PieceTypes.None;
-    }
-}
-*/  //Old Code

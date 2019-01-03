@@ -29,6 +29,7 @@ public class BoardPositionInitializer : MonoBehaviour {
     /// </summary>
     private void Awake()
     {
+        /*
         //Initialize the array of board positions
         boardTileArray = new Tile[BOARD_SIZE, BOARD_SIZE];
 
@@ -61,6 +62,7 @@ public class BoardPositionInitializer : MonoBehaviour {
 
 		//Save persistent data over on the position manager
 		GetComponent<PossiblePositionManager>().setTileDataArray(boardTileArray);
+        */
     }
 
 

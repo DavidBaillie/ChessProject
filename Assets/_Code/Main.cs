@@ -61,31 +61,44 @@ public class Main {
 
 	// This method returns the max value of the next state
 	private int maxValue(Tile[,] boardCopy, int alpha, int beta, int cutOff){
-		//Debug.Log("C - Cutoff Value = " + cutOff);
+		Debug.Log("C - MAX");
+		Debug.Log("C - Parameters: " + alpha + ", " + beta + ", " + cutOff);
 		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
 		int currentValue = int.MinValue; // Setting current value to negative inifinity
-		//Debug.Log("C - Current value = " + currentValue);
-		foreach (Tile tiles in piecesList(boardCopy)) {
+		Debug.Log("C - Current Value (max) = " + currentValue);
+		List<Tile> pieces = piecesList(boardCopy);
+		Debug.Log("C - pieces size (max) = " + pieces.Count);
+		foreach (Tile tiles in pieces) {
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again
+			Debug.Log("C - Foreach pieces (max)");
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
-			Debug.Log("C - number of options = " + options.Count);
-			foreach (MovementData choice in options) {	
+			Debug.Log("C - number of options (max) = " + options.Count);
+			foreach (MovementData choice in options) {
+				Debug.Log("C - Foreach options (max)");
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board after piece move
-				int nextVal = minValue(newBoard, alpha, beta, cutOff+1);
-				//Debug.Log("C - next val = " + nextVal);
-				if (nextVal > currentValue) currentValue = nextVal;
-				if (nextVal >= beta) return currentValue; // pruning 
-				if (nextVal > alpha) alpha = nextVal;
+				int nextVal = minValue(newBoard, alpha, beta, cutOff + 1);
+				Debug.Log("C - nextValue (max) = " + nextVal);
+				if (nextVal > currentValue) {
+					Debug.Log("C - next val is greater than current = " + nextVal);
+					currentValue = nextVal;
+				}
+				if (nextVal >= beta) {
+					Debug.Log("C - Pruned! (max) - proof: " + currentValue);
+					return currentValue; // pruning 
+				}
+				if (nextVal > alpha) {
+					alpha = nextVal;
+					Debug.Log("C - next > alpha (max), alpha = next: " + alpha);
+				}
 			}
-			Debug.Log("C - exited foreach loop max");
+			Debug.Log("C - exited foreach loop - current = " + currentValue);
 		}
-		//Debug.Log("C - returning current value = " +currentValue);
+		Debug.Log("C - RETURNING current value (max) = " +currentValue);
 		return currentValue;
 	}
 
 	// This method returns the minimum value of the next state
 	private int minValue(Tile[,] boardCopy, int alpha, int beta, int cutOff) {
-		//Debug.Log("C - Cutoff Value = " + cutOff);
 		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree i.e. there are no more objects to search/checkmate, or even check (same issue as in max)
 		int currentValue = int.MaxValue; // Setting current value to positive inifinity
 		foreach (Tile tiles in piecesList(boardCopy)) {
@@ -98,8 +111,9 @@ public class Main {
 				if (nextVal <= alpha) return currentValue; // pruning
 				if (nextVal < beta) beta = nextVal;
 			}
-			Debug.Log("C - exited foreach loop min");
+			//Debug.Log("C - exited foreach loop min");
 		}
+		Debug.Log("C - RETURNING current value (min) = " + currentValue);
 		return currentValue;
 	}
 
@@ -113,6 +127,7 @@ public class Main {
 				} //else //Debug.Log("No Add to list");
 			}
 		}
+		//Debug.Log("size of better list = " + betterList.Count);
 		return betterList;
 	}
 

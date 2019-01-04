@@ -57,10 +57,10 @@ public class GameBoardManager : MonoBehaviour {
             gameBoard[6, k].currentPiece = null;
         }
 
-        List<MovementData> m = positionManager.getAIPossibleTiles(new Tile(new Piece(PieceTypes.Rook, Team.AI), 7, 7), getTileCopyOfGameBoard());
+        List<MovementData> m = positionManager.getAIPossibleTiles(new Tile(new Piece(PieceTypes.Bishop, Team.AI), 7, 5), getTileCopyOfGameBoard());
         for (int i = 0; i < m.Count; i++)
         {
-            Debug.Log("Movement #" + i + " for Rook:");
+            Debug.Log("Movement #" + i + " for Bishop:");
             positionManager.printMovementData(m[i]);
         }
     }

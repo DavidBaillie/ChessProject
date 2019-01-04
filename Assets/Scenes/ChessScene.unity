@@ -2477,12 +2477,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 3a3b7fc45078b6f439701205b7a2bb8a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Pawn: {fileID: 1213357437349106, guid: cb6a8f6d20d524a85bf5d4d1c6ba3d93, type: 2}
-  Rook: {fileID: 1037745782791696, guid: ae91a18cadda2480e9478488d2142fde, type: 2}
-  Bishop: {fileID: 1916680518618882, guid: eec17d5f9090c4c949f55d97388bfec8, type: 2}
-  Knight: {fileID: 1830534316869998, guid: 396e9ff596f3340a3ba66f31bb9c83f8, type: 2}
-  King: {fileID: 1504342444523766, guid: de5f4888ca0e74c1ba4b9224759334f4, type: 2}
-  Queen: {fileID: 1996616484037168, guid: fd58da484cc87433689394934ae1baa1, type: 2}
 --- !u!114 &1565134683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2544,9 +2538,15 @@ MonoBehaviour:
   Pawn: {fileID: 1213357437349106, guid: cb6a8f6d20d524a85bf5d4d1c6ba3d93, type: 2}
   Rook: {fileID: 1037745782791696, guid: ae91a18cadda2480e9478488d2142fde, type: 2}
   Bishop: {fileID: 1223592777669084, guid: 3698dddfe4c0a4a8dadcdf81c3255943, type: 2}
-  Knight: {fileID: 1504342444523766, guid: de5f4888ca0e74c1ba4b9224759334f4, type: 2}
+  Knight: {fileID: 1943414466066380, guid: 45e10aea18beb495d9489aed31b95270, type: 2}
   King: {fileID: 1504342444523766, guid: de5f4888ca0e74c1ba4b9224759334f4, type: 2}
   Queen: {fileID: 1097155551969228, guid: 55516a6c49a924127a8b226bfbb3cf46, type: 2}
+  pawnValue: 1
+  rookValue: 2
+  bishopValue: 3
+  knightValue: 4
+  kingValue: 100
+  queenValue: 10
 --- !u!1001 &1583269408
 Prefab:
   m_ObjectHideFlags: 0

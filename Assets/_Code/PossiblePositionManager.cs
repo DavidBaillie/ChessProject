@@ -1326,9 +1326,9 @@ public class PossiblePositionManager : MonoBehaviour {
         List<MovementData> options = new List<MovementData>();
 
         //Get rook movement tiles
-        options = getRookTiles(tile, tileDataArray);
+        options = getRookTilesRaw(tile, tileDataArray);
         //Add bishop movement tiles
-        options.AddRange(getBishopTiles(tile, tileDataArray));
+        options.AddRange(getBishopTilesRaw(tile, tileDataArray));
 
         return options;
     }
@@ -1352,90 +1352,66 @@ public class PossiblePositionManager : MonoBehaviour {
         //Check position 1/1
         t = positionHelper(x + 1, y + 1, team, tileDataArray);
         if (t != null)
-            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
-            {
                 if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y + 1], StateChange.StandardTaken));
-            }
 
         //Check position 0/1
         t = positionHelper(x, y + 1, team, tileDataArray);
         if (t != null)
-            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
-            {
                 if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x, y + 1], StateChange.StandardTaken));
-            }
 
         //Check position 1/0
         t = positionHelper(x + 1, y, team, tileDataArray);
         if (t != null)
-            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
-            {
                 if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardTaken));
-            }
 
         //Check position -1/1
         t = positionHelper(x - 1, y + 1, team, tileDataArray);
         if (t != null)
-            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
-            {
                 if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y + 1], StateChange.StandardTaken));
-            }
 
         //Check position 1/-1
         t = positionHelper(x + 1, y - 1, team, tileDataArray);
         if (t != null)
-            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
-            {
                 if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x + 1, y - 1], StateChange.StandardTaken));
-            }
 
         //Check position -1/-1
         t = positionHelper(x - 1, y - 1, team, tileDataArray);
         if (t != null)
-            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
-            {
                 if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y - 1], StateChange.StandardTaken));
-            }
 
         //Check position -1/0
         t = positionHelper(x - 1, y, team, tileDataArray);
         if (t != null)
-            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
-            {
                 if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardTaken));
-            }
 
         //Check position 0/-1
         t = positionHelper(x, y - 1, team, tileDataArray);
         if (t != null)
-            if (kingIsInCheck(movePiece(tile, t, tileDataArray), team) == false)
-            {
                 if (t.currentPiece == null)
                     options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardMovement));
                 else
                     options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardTaken));
-            }
 
         return options;
     }

@@ -46,6 +46,23 @@ public class GameBoardManager : MonoBehaviour {
 
         //Initialize the PossiblePositionManager to kick off the core game loop
         positionManager.construct(getTileCopyOfGameBoard());
+
+        //Remove all Pawns
+        for (int k = 0; k < 8; k++)
+        {
+            Destroy(gameBoard[1, k].currentPiece.gameObject);
+            gameBoard[1, k].currentPiece = null;
+
+            Destroy(gameBoard[6, k].currentPiece.gameObject);
+            gameBoard[6, k].currentPiece = null;
+        }
+
+        List<MovementData> m = positionManager.getAIPossibleTiles(new Tile(new Piece(PieceTypes.Rook, Team.AI), 7, 7), getTileCopyOfGameBoard());
+        for (int i = 0; i < m.Count; i++)
+        {
+            Debug.Log("Movement #" + i + " for Rook:");
+            positionManager.printMovementData(m[i]);
+        }
     }
 
     /// <summary>

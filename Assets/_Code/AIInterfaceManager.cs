@@ -19,8 +19,9 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         
         //Continue running while game active
-        while (true)
+        while (false)
         {
+            
             //If it's the AI's turn, spin up an AI and have it decide a turn
             if (parent.positionManager.isPlayersTurn() == false)
             {
@@ -31,6 +32,7 @@ public class AIInterfaceManager : MonoBehaviour {
                 parent.finishAITurn();
                 Debug.Log("Submitting answer");
             }
+            
         }
         
     }

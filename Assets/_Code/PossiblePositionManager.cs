@@ -71,6 +71,11 @@ public class PossiblePositionManager : MonoBehaviour {
                 //Move Rook
                 boardManager.moveUnit(data.secondaryChangeStart.x, data.secondaryChangeStart.y, data.secondaryChangeEnd.x, data.secondaryChangeEnd.y);
                 break;
+
+            ////Upgrading
+            case StateChange.Upgrade:
+                boardManager.upgradeUnit(data.startTile.x, data.startTile.y, data.newPiece.type);
+                break;
         }
 
         //Update local game board and run AI if the Player just went
@@ -249,9 +254,19 @@ public class PossiblePositionManager : MonoBehaviour {
             //Pawn is out on the board, check for forwards movement
             else
             {
-                if (tileDataArray[x + 1, y].currentPiece == null)
-                    if (kingIsInCheck(movePiece(tile, tileDataArray[x + 1, y], tileDataArray), team) == false)
-                        options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
+                //Standard pawn movement
+                if (x < 7)
+                {
+                    if (tileDataArray[x + 1, y].currentPiece == null)
+                        if (kingIsInCheck(movePiece(tile, tileDataArray[x + 1, y], tileDataArray), team) == false)
+                            options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
+                }
+                //Otherwise we're promoting the pawn
+                else
+                {
+                    options.Add(new MovementData(tile, true, new Piece(PieceTypes.Queen, tile.currentPiece.team)));
+                    options.Add(new MovementData(tile, true, new Piece(PieceTypes.Knight, tile.currentPiece.team)));
+                }
             }
             
 
@@ -306,7 +321,8 @@ public class PossiblePositionManager : MonoBehaviour {
                 //Otherwise we're promoting the pawn
                 else
                 {
-                    options.Add(new MovementData());
+                    options.Add(new MovementData(tile, true, new Piece(PieceTypes.Queen, tile.currentPiece.team)));
+                    options.Add(new MovementData(tile, true, new Piece(PieceTypes.Knight, tile.currentPiece.team)));
                 }
             }
 
@@ -901,8 +917,18 @@ public class PossiblePositionManager : MonoBehaviour {
             //Pawn is out on the board, check for forwards movement
             else
             {
-                if (tileDataArray[x + 1, y].currentPiece == null)
-                    options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
+                //Standard pawn movement
+                if (x < 7)
+                {
+                    if (tileDataArray[x + 1, y].currentPiece == null)
+                        options.Add(new MovementData(tile, tileDataArray[x + 1, y], StateChange.StandardMovement));
+                }
+                //Otherwise we're upgrading the pawn
+                else
+                {
+                    options.Add(new MovementData(tile, true, new Piece(PieceTypes.Queen, tile.currentPiece.team)));
+                    options.Add(new MovementData(tile, true, new Piece(PieceTypes.Knight, tile.currentPiece.team)));
+                }
             }
 
             //Check for side motion
@@ -941,15 +967,17 @@ public class PossiblePositionManager : MonoBehaviour {
             //Otherwise pawn out on board
             else
             {
-                try
+                //Standard pawn movement
+                if (x > 0)
                 {
                     if (tileDataArray[x - 1, y].currentPiece == null)
                         options.Add(new MovementData(tile, tileDataArray[x - 1, y], StateChange.StandardMovement));
-                } catch (IndexOutOfRangeException e)
+                }
+                //Otherwise we're upgrading the pawn
+                else
                 {
-                    Debug.Log("Caught Index Out of Range \n" +
-                        "x = " + x + "\n" +
-                        "y = " + y);
+                    options.Add(new MovementData(tile, true, new Piece(PieceTypes.Queen, tile.currentPiece.team)));
+                    options.Add(new MovementData(tile, true, new Piece(PieceTypes.Knight, tile.currentPiece.team)));
                 }
             }
 
@@ -1466,9 +1494,9 @@ internal struct MovementData
     /// <param name="e1">Tile pawn upgrading on</param>
     /// <param name="upgraded">If the pawn upgraded</param>
     /// <param name="p">Piece the pawn will become</param>
-    internal MovementData (Tile s1, Tile e1, bool upgraded, Piece p)
+    internal MovementData (Tile s1, bool upgraded, Piece p)
     {
-        startTile = s1; endTile = e1; movementType = StateChange.Upgrade;
+        startTile = s1; endTile = null; movementType = StateChange.Upgrade;
         secondaryChangeStart = null; secondaryChangeEnd = null;
         pawnUpgraded = upgraded; newPiece = p;
     }

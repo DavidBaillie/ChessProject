@@ -166,6 +166,11 @@ public class AIInterfaceManager : MonoBehaviour {
                 endTwo.currentPiece = startTwo.currentPiece;
                 startTwo.currentPiece = null;
                 break;
+
+            ////Piece Upgrading
+            case StateChange.Upgrade:
+                data.startTile.currentPiece = data.newPiece;
+                break;
         }
 
         //Return new board with pieces moved

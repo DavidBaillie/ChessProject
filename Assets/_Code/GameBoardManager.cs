@@ -356,6 +356,47 @@ public class GameBoardManager : MonoBehaviour {
         start.currentPiece = null;
     }
 
+    /// <summary>
+    /// Will change the PieceType of the WorldPiece at WorldTile (x,y) to the new specified PieceType
+    /// </summary>
+    /// <param name="x">X Coordinate of WorldTile</param>
+    /// <param name="y">Y Coordinate of WorldTile</param>
+    /// <param name="newType">PieceType the WorldPiece will become</param>
+    internal void upgradeUnit (int x, int y, PieceTypes newType)
+    {
+        Team team = gameBoard[x, y].currentPiece.team;
+        Destroy(gameBoard[x, y].currentPiece.gameObject);
+
+        switch (newType)
+        {
+            case PieceTypes.Queen:
+                GameObject newQueen = Instantiate(Queen);
+                if (team == Team.AI) newQueen.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
+                newQueen.transform.localScale = new Vector3(pieceScale, pieceScale, pieceScale);
+                newQueen.transform.position = new Vector3(x, 0.5f, y);
+
+                WorldPiece queenPiece = newQueen.AddComponent<WorldPiece>();
+                queenPiece.instanciate(newQueen.transform.position, PieceTypes.Queen, team, movementSpeed);
+
+                gameBoard[x, y].currentPiece = queenPiece;
+                break;
+            case PieceTypes.Knight:
+                GameObject newKnight = Instantiate(Knight);
+                if (team == Team.AI) newKnight.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
+                newKnight.transform.localScale = new Vector3(pieceScale, pieceScale, pieceScale);
+                newKnight.transform.position = new Vector3(x, 0.5f, y);
+
+                WorldPiece knightPiece = newKnight.AddComponent<WorldPiece>();
+                knightPiece.instanciate(newKnight.transform.position, PieceTypes.Knight, team, movementSpeed);
+
+                gameBoard[x, y].currentPiece = knightPiece;
+                break;
+            default:
+                Debug.Log("Unexpected parameter provided when upgrading Pawn to a new Type! (" + newType + ")");
+                break;
+        }
+    }
+
 
 
     /// <summary>

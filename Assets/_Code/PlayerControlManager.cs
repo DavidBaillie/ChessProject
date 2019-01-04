@@ -41,6 +41,7 @@ public class PlayerControlManager : MonoBehaviour {
     private void registerPlayerAction (WorldTile c)
     {
         current = c;
+		if (current == null) return;
 
         //Case where nothing is currently selected
         if (selected == null)

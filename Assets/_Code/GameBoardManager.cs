@@ -46,6 +46,11 @@ public class GameBoardManager : MonoBehaviour {
 
         //Initialize the PossiblePositionManager to kick off the core game loop
         positionManager.construct(getTileCopyOfGameBoard());
+
+		List<MovementData> options = positionManager.getAIPossibleTiles(new Tile(new Piece(PieceTypes.Knight, Team.AI), 7, 1), getTileCopyOfGameBoard());
+		for (int i = 0; i < options.Count; i++) {
+			positionManager.printMovementData(options[i]);
+		}
     }
 
     /// <summary>

@@ -194,14 +194,14 @@ public class AIInterfaceManager : MonoBehaviour {
         List<MovementData> options;
         if (tile.currentPiece.team == Team.Player)
         {
-            options = positionManager.getPlayerPossibleTiles(tile, inputArray);
-        }
+			options = positionManager.getPlayerPossibleTiles(tile, inputArray);
+		}
         else
         {
-            options = positionManager.getAIPossibleTiles(tile, inputArray);
-        }
+			options = positionManager.getAIPossibleTiles(tile, inputArray);
+		}
 
-        return options;
+		return options;
     }
 
     /// <summary>

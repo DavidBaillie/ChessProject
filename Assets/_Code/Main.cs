@@ -5,7 +5,7 @@ public class Main {
 
 	//Class used to interface with Unity Code
 	private AIInterfaceManager unityInterface;
-	private int depth = 2; //TODO: this is hardcoded right now, but should be user chosen ... user chosen parameter of depth to check against in Min & Max 
+	private int depth = 4; //TODO: this is hardcoded right now, but should be user chosen ... user chosen parameter of depth to check against in Min & Max 
 
 
 	/// <summary>
@@ -30,17 +30,13 @@ public class Main {
 		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a list of all pieces
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
-            Debug.Log("AI - Checking options for piece " + tiles.currentPiece.type + " (" + tiles.x + "/" + tiles.y + ")");
             int count = 0;
 			foreach (MovementData move in options) { // for each movement option
                 if (tiles.x == 6 && tiles.y == 3) count++;
                 Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // create a new board with movement of piece
-                if (tiles.x == 6 && tiles.y == 3) Debug.Log("Got new copy of board after movement #" + count);
-				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1, false); // starting cutoff 1 layer down (due to making 1 decision)
-                if (tiles.x == 6 && tiles.y == 3) Debug.Log("Finished decision tree for run #" + count);
+				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1, tiles.x == 6 && tiles.y == 3); // starting cutoff 1 layer down (due to making 1 decision)
                 Choice choice = new Choice(value, move); // create wrapper class holding score and decision
 				allChoices.Add(choice); // add wrapper class to a list
-                if (tiles.x == 6 && tiles.y == 3) Debug.Log("Submitted choice for run #" + count);
             }
 		}
 		int bestValIndex = findBest(allChoices);// should return the index of the best-valued option
@@ -63,13 +59,44 @@ public class Main {
 		return index; //TODO: there is an issue here. If the list is empty, this method will return index 0, which will yield an array out of bounds. Is an empty list even possible as this means there are no more AI Pieces (which means no king which is after checkmate)?
 	}
 
+	private void printArray (Tile[,] arr) {
+		string output = "";
+		for (int x = 0; x < 8; x++) {
+			output += "\n";
+			for (int y = 0; y < 8; y++) {
+				if (arr[x, y].currentPiece == null) output += " -";
+				else 
+					switch(arr[x,y].currentPiece.type) {
+						case PieceTypes.Pawn:
+							output += " p";
+							break;
+						case PieceTypes.Rook:
+							output += " r";
+							break;
+						case PieceTypes.Knight:
+							output += " k";
+							break;
+						case PieceTypes.Bishop:
+							output += " b";
+							break;
+						case PieceTypes.Queen:
+							output += " q";
+							break;
+						case PieceTypes.King:
+							output += " D";
+							break;
+					}
+			}
+		}
+
+		Debug.Log(output);
+	}
+
 	// This method returns the max value of the next state
 	private int maxValue(Tile[,] boardCopy, int alpha, int beta, int cutOff, bool enableDebug){
-        if (enableDebug) Debug.Log("Max " + cutOff);
 
         if (cutOff == depth)
         {
-            if (enableDebug) Debug.Log("(MAX) Hit max depth, returning score of " + unityInterface.AC_getScoreOfBoard(boardCopy));
             return unityInterface.AC_getScoreOfBoard(boardCopy);
         } //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
 
@@ -80,37 +107,39 @@ public class Main {
 		foreach (Tile tiles in pieces) {
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again
 
-            List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+
+			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+
+			int c = 0;
 			foreach (MovementData choice in options) {
+				if (cutOff == 3) c++;
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board after piece move
 
-                int nextVal = minValue(newBoard, alpha, beta, cutOff + 1, enableDebug);
+				int nextVal = minValue(newBoard, alpha, beta, cutOff + 1, enableDebug);
 
-                if (nextVal > currentValue) {
+				if (nextVal > currentValue) {
 					currentValue = nextVal;
 				}
 
-                if (nextVal >= beta) {
-                    if (enableDebug) Debug.Log("(MAX) Pruning tree, returning MAX value of " + currentValue);
+				if (nextVal >= beta) {
 					return currentValue; // pruning 
 				}
 
-                if (nextVal > alpha) {
+				if (nextVal > alpha) {
 					alpha = nextVal;
 				}
+
 			}
+
 		}
-        if (enableDebug) Debug.Log("(MAX) Default return case, returning MAX value of " + currentValue);
 		return currentValue;
 	}
 
 	// This method returns the minimum value of the next state
 	private int minValue(Tile[,] boardCopy, int alpha, int beta, int cutOff, bool enableDebug) {
-        if (enableDebug) Debug.Log("Min " + cutOff);
 
         if (cutOff == depth)
         {
-            if (enableDebug) Debug.Log("(MIN) Hit max depth, returning score of " + unityInterface.AC_getScoreOfBoard(boardCopy));
             return unityInterface.AC_getScoreOfBoard(boardCopy);
         }
         //TODO:What if we hit the bottom of the tree i.e. there are no more objects to search/checkmate, or even check (same issue as in max)
@@ -130,15 +159,12 @@ public class Main {
 
                 if (nextVal <= alpha)
                 {
-                    if (enableDebug) Debug.Log("(MIN) Pruning tree, returning MIN value of " + currentValue);
                     return currentValue; // pruning
                 }
 
                 if (nextVal < beta) beta = nextVal;
 			}
-			//Debug.Log("C - exited foreach loop min");
 		}
-        if (enableDebug) Debug.Log("(MIN) Default return case, returning MIN value of " + currentValue);
         return currentValue;
 	}
 

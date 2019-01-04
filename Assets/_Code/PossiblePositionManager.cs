@@ -80,7 +80,7 @@ public class PossiblePositionManager : MonoBehaviour {
 
         //Update local game board and run AI if the Player just went
         tileGameBoard = boardManager.getTileCopyOfGameBoard();
-        if (playersTurn == false) AI_Interface.runAI();
+        //if (playersTurn == false) AI_Interface.runAI();
     }
 
     #region Player Turn

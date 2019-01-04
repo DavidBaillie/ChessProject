@@ -24,10 +24,12 @@ public class AIInterfaceManager : MonoBehaviour {
             //If it's the AI's turn, spin up an AI and have it decide a turn
             if (parent.positionManager.isPlayersTurn() == false)
             {
+                Debug.Log("Starting AI");
                 //Spin up AI
                 Main m = new Main(parent);
-
+                Debug.Log("AI Finished");
                 parent.finishAITurn();
+                Debug.Log("Submitting answer");
             }
         }
         
@@ -56,11 +58,11 @@ public class AIInterfaceManager : MonoBehaviour {
         //updateBoardStatus();
 
         //Spin up thread
-		/*
+		
         Thread t = new Thread(() => main_AI_Thread(this));
         t.IsBackground = true;
         t.Start();
-		*/
+		
     }
 
     /// <summary>

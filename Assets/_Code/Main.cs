@@ -5,7 +5,7 @@ public class Main {
 
 	//Class used to interface with Unity Code
 	private AIInterfaceManager unityInterface;
-	private int depth = 12; //TODO: this is hardcoded right now, but should be user chosen ... user chosen parameter of depth to check against in Min & Max 
+	private int depth = 5; //TODO: this is hardcoded right now, but should be user chosen ... user chosen parameter of depth to check against in Min & Max 
 
 
 	/// <summary>
@@ -13,11 +13,13 @@ public class Main {
 	/// </summary>
 	/// <param name="unityInterface">Interface Class for Unity</param>
 	public Main(AIInterfaceManager unityInterface){
+        Debug.Log("AI - Started Constructor");
 		this.unityInterface = unityInterface;
-		Debug.Log("C - About to call AI");
 		Tile[,] boardCopy = unityInterface.AC_getCurrentBoard();
 		MovementData bestChoice = searchAlphaBeta(boardCopy); // chooses an action
+        Debug.Log("AI - Finished AI tree");
 		unityInterface.AC_submitChoice(bestChoice);
+        Debug.Log("AI - Completed Constructor");
 	}
 
 	// Methods ------------------------------------------------------------
@@ -25,16 +27,13 @@ public class Main {
 	private MovementData searchAlphaBeta(Tile[,] boardCopy) {
 		List<Choice> allChoices = new List<Choice>(); // create a list of moves with their associated values
 													  // for each piece on the board
-		Debug.Log("C - About to enter first foreach loop");
 		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a list of all pieces
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
-			Debug.Log("C - Starting to look at AI Pieces");
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+            Debug.Log("AI - Checking options for piece " + tiles.currentPiece.type + " (" + tiles.x + "/" + tiles.y + ")");
 			foreach (MovementData move in options) { // for each movement option
-				Debug.Log("C - In 2nd foreach loop");
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // create a new board with movement of piece
 				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1); // starting cutoff 1 layer down (due to making 1 decision)
-				Debug.Log("C - Finished recurrsion");
 				Choice choice = new Choice(value, move); // create wrapper class holding score and decision
 				allChoices.Add(choice); // add wrapper class to a list
 			}
@@ -61,39 +60,26 @@ public class Main {
 
 	// This method returns the max value of the next state
 	private int maxValue(Tile[,] boardCopy, int alpha, int beta, int cutOff){
-		Debug.Log("C - MAX");
-		Debug.Log("C - Parameters: " + alpha + ", " + beta + ", " + cutOff);
 		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
 		int currentValue = int.MinValue; // Setting current value to negative inifinity
-		Debug.Log("C - Current Value (max) = " + currentValue);
 		List<Tile> pieces = piecesList(boardCopy);
-		Debug.Log("C - pieces size (max) = " + pieces.Count);
 		foreach (Tile tiles in pieces) {
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again
-			Debug.Log("C - Foreach pieces (max)");
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
-			Debug.Log("C - number of options (max) = " + options.Count);
 			foreach (MovementData choice in options) {
-				Debug.Log("C - Foreach options (max)");
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board after piece move
 				int nextVal = minValue(newBoard, alpha, beta, cutOff + 1);
-				Debug.Log("C - nextValue (max) = " + nextVal);
 				if (nextVal > currentValue) {
-					Debug.Log("C - next val is greater than current = " + nextVal);
 					currentValue = nextVal;
 				}
 				if (nextVal >= beta) {
-					Debug.Log("C - Pruned! (max) - proof: " + currentValue);
 					return currentValue; // pruning 
 				}
 				if (nextVal > alpha) {
 					alpha = nextVal;
-					Debug.Log("C - next > alpha (max), alpha = next: " + alpha);
 				}
 			}
-			Debug.Log("C - exited foreach loop - current = " + currentValue);
 		}
-		Debug.Log("C - RETURNING current value (max) = " +currentValue);
 		return currentValue;
 	}
 
@@ -113,7 +99,6 @@ public class Main {
 			}
 			//Debug.Log("C - exited foreach loop min");
 		}
-		Debug.Log("C - RETURNING current value (min) = " + currentValue);
 		return currentValue;
 	}
 

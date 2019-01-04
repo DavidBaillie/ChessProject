@@ -19,7 +19,7 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         
         //Continue running while game active
-        while (false)
+        while (true)
         {
             
             //If it's the AI's turn, spin up an AI and have it decide a turn

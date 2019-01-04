@@ -15,12 +15,12 @@ public class GameBoardManager : MonoBehaviour {
     public GameObject King;
     public GameObject Queen;
     [Space(5)]
-    public float pawnValue;
-    public float rookValue;
-    public float bishopValue;
-    public float knightValue;
-    public float kingValue;
-    public float queenValue;
+    public int pawnValue;
+    public int rookValue;
+    public int bishopValue;
+    public int knightValue;
+    public int kingValue;
+    public int queenValue;
     //Inspector Vars////
 
     private WorldTile[,] gameBoard;
@@ -404,7 +404,7 @@ public class GameBoardManager : MonoBehaviour {
     /// </summary>
     /// <param name="type">PieceType to return value of</param>
     /// <returns>float representing Piece value</returns>
-    internal float getPieceScore (PieceTypes type)
+    internal int getPieceScore (PieceTypes type)
     {
         switch (type)
         {
@@ -423,6 +423,6 @@ public class GameBoardManager : MonoBehaviour {
         }
 
         //Default return, should never run
-        return 0f;
+        return 0;
     }
 }

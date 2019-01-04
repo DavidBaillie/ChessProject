@@ -9,6 +9,9 @@ public class AIInterfaceManager : MonoBehaviour {
     private GameBoardManager boardManager;
     private MovementData finalChoice;
 
+    internal volatile bool aiShouldRun;
+    internal volatile bool aiFinishedTurn;
+
     private GameObject holder;
 
     /// <summary>
@@ -23,30 +26,30 @@ public class AIInterfaceManager : MonoBehaviour {
         {
             
             //If it's the AI's turn, spin up an AI and have it decide a turn
-            if (parent.positionManager.isPlayersTurn() == false)
+            if (parent.aiShouldRun)
             {
                 Debug.Log("Starting AI");
                 //Spin up AI
                 Main m = new Main(parent);
                 Debug.Log("AI Finished");
-                parent.finishAITurn();
-                Debug.Log("Submitting answer");
+                parent.aiShouldRun = false;
             }
             
         }
         
     }
 
-	//TEMP METHOD TO OFFLOAD TO MAIN THREAD
-	internal void runAI () 
-	{
-		Debug.Log("starting AI");
-		//Spin up AI
-		Main m = new Main(this);
-		Debug.Log("AI finished calculations, submitting response");
-		finishAITurn();
-		Debug.Log("Movement Submitted");
-	}
+    /// <summary>
+    /// Runs every frame looking for an answer to submit
+    /// </summary>
+    private void Update()
+    {
+        if (aiFinishedTurn)
+        {
+            finishAITurn();
+            aiFinishedTurn = false;
+        }
+    }
 
     /// <summary>
     /// Called by the PossiblePositionManager once world generation has completed.
@@ -59,6 +62,8 @@ public class AIInterfaceManager : MonoBehaviour {
         boardManager = GetComponent<GameBoardManager>();
         //updateBoardStatus();
 
+        aiFinishedTurn = false;
+
         //Spin up thread
 		
         Thread t = new Thread(() => main_AI_Thread(this));
@@ -70,13 +75,8 @@ public class AIInterfaceManager : MonoBehaviour {
     /// <summary>
     /// Called by the AI thread when the decision to move a piece has been made.
     /// </summary>
-    /// <param name="x1">Piece X Coordinate</param>
-    /// <param name="y1">Piece Y Coordinate</param>
-    /// <param name="x2">Move to X Coordinate</param>
-    /// <param name="y2">Move to Y Coordinate</param>
     internal void finishAITurn ()
     {
-        //TODO - Uncomment this to make AI functional again
         positionManager.moveToTile(finalChoice);
     }
 
@@ -211,23 +211,30 @@ public class AIInterfaceManager : MonoBehaviour {
     /// <returns>Integer score of board</returns>
     internal int AC_getScoreOfBoard (Tile[,] inputArray)
     {
-        float score = 0f;
+        int score = 0;
+        Tile tile = null;
 
-        foreach (Tile tile in inputArray)
+        for (int x = 0; x < 8; x++)
         {
-            if (tile.currentPiece == null) continue;
+            for (int y = 0; y < 8; y++)
+            {
+                tile = inputArray[x, y];
 
-            if (tile.currentPiece.team == Team.AI)
-            {
-                score += boardManager.getPieceScore(tile.currentPiece.type);
-            }
-            else
-            {
-                score -= boardManager.getPieceScore(tile.currentPiece.type);
+                if (tile == null) continue;
+                if (tile.currentPiece == null) continue;
+
+                if (tile.currentPiece.team == Team.AI)
+                {
+                    score += boardManager.getPieceScore(tile.currentPiece.type);
+                }
+                else
+                {
+                    score -= boardManager.getPieceScore(tile.currentPiece.type);
+                }
             }
         }
 
-        return (int)score;
+        return score;
     }
 
     /// <summary>
@@ -237,5 +244,6 @@ public class AIInterfaceManager : MonoBehaviour {
     internal void AC_submitChoice (MovementData data)
     {
         finalChoice = data;
+        aiFinishedTurn = true;
     }
 }

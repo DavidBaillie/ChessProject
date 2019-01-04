@@ -2440,7 +2440,6 @@ GameObject:
   serializedVersion: 5
   m_Component:
   - component: {fileID: 1565134681}
-  - component: {fileID: 1565134682}
   - component: {fileID: 1565134685}
   - component: {fileID: 1565134684}
   - component: {fileID: 1565134683}
@@ -2466,17 +2465,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 3
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &1565134682
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_PrefabParentObject: {fileID: 0}
-  m_PrefabInternal: {fileID: 0}
-  m_GameObject: {fileID: 1565134680}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 3a3b7fc45078b6f439701205b7a2bb8a, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &1565134683
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -2545,8 +2533,8 @@ MonoBehaviour:
   rookValue: 2
   bishopValue: 3
   knightValue: 4
-  kingValue: 100
-  queenValue: 10
+  kingValue: 5
+  queenValue: 6
 --- !u!1001 &1583269408
 Prefab:
   m_ObjectHideFlags: 0

@@ -5,7 +5,7 @@ public class Main {
 
 	//Class used to interface with Unity Code
 	private AIInterfaceManager unityInterface;
-	private int depth = 5; //TODO: this is hardcoded right now, but should be user chosen ... user chosen parameter of depth to check against in Min & Max 
+	private int depth = 2; //TODO: this is hardcoded right now, but should be user chosen ... user chosen parameter of depth to check against in Min & Max 
 
 
 	/// <summary>
@@ -31,12 +31,17 @@ public class Main {
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
             Debug.Log("AI - Checking options for piece " + tiles.currentPiece.type + " (" + tiles.x + "/" + tiles.y + ")");
+            int count = 0;
 			foreach (MovementData move in options) { // for each movement option
-				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // create a new board with movement of piece
-				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1); // starting cutoff 1 layer down (due to making 1 decision)
-				Choice choice = new Choice(value, move); // create wrapper class holding score and decision
+                if (tiles.x == 6 && tiles.y == 3) count++;
+                Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // create a new board with movement of piece
+                if (tiles.x == 6 && tiles.y == 3) Debug.Log("Got new copy of board after movement #" + count);
+				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1, false); // starting cutoff 1 layer down (due to making 1 decision)
+                if (tiles.x == 6 && tiles.y == 3) Debug.Log("Finished decision tree for run #" + count);
+                Choice choice = new Choice(value, move); // create wrapper class holding score and decision
 				allChoices.Add(choice); // add wrapper class to a list
-			}
+                if (tiles.x == 6 && tiles.y == 3) Debug.Log("Submitted choice for run #" + count);
+            }
 		}
 		int bestValIndex = findBest(allChoices);// should return the index of the best-valued option
 		MovementData bestChoice = allChoices[bestValIndex].bestMove; // just getting the best choice
@@ -59,47 +64,82 @@ public class Main {
 	}
 
 	// This method returns the max value of the next state
-	private int maxValue(Tile[,] boardCopy, int alpha, int beta, int cutOff){
-		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
-		int currentValue = int.MinValue; // Setting current value to negative inifinity
-		List<Tile> pieces = piecesList(boardCopy);
+	private int maxValue(Tile[,] boardCopy, int alpha, int beta, int cutOff, bool enableDebug){
+        if (enableDebug) Debug.Log("Max " + cutOff);
+
+        if (cutOff == depth)
+        {
+            if (enableDebug) Debug.Log("(MAX) Hit max depth, returning score of " + unityInterface.AC_getScoreOfBoard(boardCopy));
+            return unityInterface.AC_getScoreOfBoard(boardCopy);
+        } //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
+
+        int currentValue = int.MinValue; // Setting current value to negative inifinity
+
+
+        List<Tile> pieces = piecesList(boardCopy);
 		foreach (Tile tiles in pieces) {
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again
-			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+
+            List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
 			foreach (MovementData choice in options) {
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board after piece move
-				int nextVal = minValue(newBoard, alpha, beta, cutOff + 1);
-				if (nextVal > currentValue) {
+
+                int nextVal = minValue(newBoard, alpha, beta, cutOff + 1, enableDebug);
+
+                if (nextVal > currentValue) {
 					currentValue = nextVal;
 				}
-				if (nextVal >= beta) {
+
+                if (nextVal >= beta) {
+                    if (enableDebug) Debug.Log("(MAX) Pruning tree, returning MAX value of " + currentValue);
 					return currentValue; // pruning 
 				}
-				if (nextVal > alpha) {
+
+                if (nextVal > alpha) {
 					alpha = nextVal;
 				}
 			}
 		}
+        if (enableDebug) Debug.Log("(MAX) Default return case, returning MAX value of " + currentValue);
 		return currentValue;
 	}
 
 	// This method returns the minimum value of the next state
-	private int minValue(Tile[,] boardCopy, int alpha, int beta, int cutOff) {
-		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy); //TODO:What if we hit the bottom of the tree i.e. there are no more objects to search/checkmate, or even check (same issue as in max)
-		int currentValue = int.MaxValue; // Setting current value to positive inifinity
-		foreach (Tile tiles in piecesList(boardCopy)) {
+	private int minValue(Tile[,] boardCopy, int alpha, int beta, int cutOff, bool enableDebug) {
+        if (enableDebug) Debug.Log("Min " + cutOff);
+
+        if (cutOff == depth)
+        {
+            if (enableDebug) Debug.Log("(MIN) Hit max depth, returning score of " + unityInterface.AC_getScoreOfBoard(boardCopy));
+            return unityInterface.AC_getScoreOfBoard(boardCopy);
+        }
+        //TODO:What if we hit the bottom of the tree i.e. there are no more objects to search/checkmate, or even check (same issue as in max)
+
+        int currentValue = int.MaxValue; // Setting current value to positive inifinity
+
+        foreach (Tile tiles in piecesList(boardCopy)) {
 			if (tiles.currentPiece.team == Team.AI) continue; // if AI team, skip and iterate again
-			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+
+            List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
 			foreach (MovementData choice in options) {
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board
-				int nextVal = maxValue(newBoard, alpha, beta, cutOff+1);
-				if (nextVal < currentValue) currentValue = nextVal;
-				if (nextVal <= alpha) return currentValue; // pruning
-				if (nextVal < beta) beta = nextVal;
+
+                int nextVal = maxValue(newBoard, alpha, beta, cutOff+1, enableDebug);
+
+                if (nextVal < currentValue) currentValue = nextVal;
+
+                if (nextVal <= alpha)
+                {
+                    if (enableDebug) Debug.Log("(MIN) Pruning tree, returning MIN value of " + currentValue);
+                    return currentValue; // pruning
+                }
+
+                if (nextVal < beta) beta = nextVal;
 			}
 			//Debug.Log("C - exited foreach loop min");
 		}
-		return currentValue;
+        if (enableDebug) Debug.Log("(MIN) Default return case, returning MIN value of " + currentValue);
+        return currentValue;
 	}
 
 	// turning everything into a new 1D list to make it easier to read from

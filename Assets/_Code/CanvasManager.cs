@@ -1,6 +1,7 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class CanvasManager : MonoBehaviour {
 
@@ -47,6 +48,11 @@ public class CanvasManager : MonoBehaviour {
     public void showWinCanvas (Team team)
     {
         winCanvas.SetActive(true);
+
+        if (team == Team.AI)
+        {
+            winCanvas.transform.GetChild(0).GetComponent<Text>().text = "You Lose!";
+        }
     }
 
     /// <summary>

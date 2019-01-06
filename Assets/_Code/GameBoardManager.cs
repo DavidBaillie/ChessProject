@@ -1,12 +1,17 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class GameBoardManager : MonoBehaviour {
 
     //Inspector Vars////
     public float movementSpeed;
     public float pieceScale;
+    public InputField depthField;
+    public Button standardButton;
+    public Button customButton;
     [Space(5)]
     public GameObject Pawn;
     public GameObject Rook;
@@ -26,12 +31,32 @@ public class GameBoardManager : MonoBehaviour {
     private WorldTile[,] gameBoard;
     private PossiblePositionManager positionManager;
 
+
+
     /// <summary>
     /// Called on object creation
     /// </summary>
     private void Awake()
     {
         positionManager = GetComponent<PossiblePositionManager>();
+    }
+
+    /// <summary>
+    /// Called every frame
+    /// </summary>
+    private void Update()
+    {
+        int ignore = 0;
+        if (Int32.TryParse(depthField.text, out ignore))
+        {
+            standardButton.interactable = true;
+            customButton.interactable = true;
+        }
+        else
+        {
+            standardButton.interactable = false;
+            customButton.interactable = false;
+        }
     }
 
 

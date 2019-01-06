@@ -31,6 +31,7 @@ public class GameBoardManager : MonoBehaviour {
     private WorldTile[,] gameBoard;
     private PossiblePositionManager positionManager;
     private AIInterfaceManager AIManager;
+    private CanvasManager canvasManager;
 
 
     /// <summary>
@@ -40,6 +41,7 @@ public class GameBoardManager : MonoBehaviour {
     {
         positionManager = GetComponent<PossiblePositionManager>();
         AIManager = GetComponent<AIInterfaceManager>();
+        canvasManager = GetComponent<CanvasManager>();
     }
 
     /// <summary>
@@ -61,6 +63,7 @@ public class GameBoardManager : MonoBehaviour {
     }
 
 
+
     /// <summary>
     /// Called by the CanvasManager to create a standard game
     /// </summary>
@@ -73,11 +76,6 @@ public class GameBoardManager : MonoBehaviour {
 
         //Initialize the PossiblePositionManager to kick off the core game loop
         positionManager.construct(getTileCopyOfGameBoard());
-
-		List<MovementData> options = positionManager.getAIPossibleTiles(new Tile(new Piece(PieceTypes.Knight, Team.AI), 7, 1), getTileCopyOfGameBoard());
-		for (int i = 0; i < options.Count; i++) {
-			positionManager.printMovementData(options[i]);
-		}
     }
 
     /// <summary>
@@ -355,6 +353,35 @@ public class GameBoardManager : MonoBehaviour {
     }
 
     /// <summary>
+    /// Returns the value of the provided PieceType
+    /// </summary>
+    /// <param name="type">PieceType to return value of</param>
+    /// <returns>float representing Piece value</returns>
+    internal int getPieceScore(PieceTypes type)
+    {
+        switch (type)
+        {
+            case PieceTypes.Pawn:
+                return pawnValue;
+            case PieceTypes.Rook:
+                return rookValue;
+            case PieceTypes.Knight:
+                return knightValue;
+            case PieceTypes.Bishop:
+                return bishopValue;
+            case PieceTypes.King:
+                return kingValue;
+            case PieceTypes.Queen:
+                return queenValue;
+        }
+
+        //Default return, should never run
+        return 0;
+    }
+
+
+
+    /// <summary>
     /// Removes the piece at the provided coordinates from the board
     /// </summary>
     /// <param name="x">X Coordinate of WorldTile</param>
@@ -434,29 +461,38 @@ public class GameBoardManager : MonoBehaviour {
 
 
     /// <summary>
-    /// Returns the value of the provided PieceType
+    /// Called when CheckMate occurrs to end the game
     /// </summary>
-    /// <param name="type">PieceType to return value of</param>
-    /// <returns>float representing Piece value</returns>
-    internal int getPieceScore (PieceTypes type)
+    /// <param name="team">Winning Team</param>
+    internal void gameWin (Team team)
     {
-        switch (type)
+        destroyBoard();
+        canvasManager.showWinCanvas(team);
+    }
+
+    /// <summary>
+    /// Called when a StaleMate occurrs
+    /// </summary>
+    internal void tieGame ()
+    {
+        destroyBoard();
+        canvasManager.showTieCanvas();
+    }
+
+    /// <summary>
+    /// Destroys all GameObjects related to the game Board
+    /// </summary>
+    private void destroyBoard ()
+    {
+        for (int x = 0; x < 8; x++)
         {
-            case PieceTypes.Pawn:
-                return pawnValue;
-            case PieceTypes.Rook:
-                return rookValue;
-            case PieceTypes.Knight:
-                return knightValue;
-            case PieceTypes.Bishop:
-                return bishopValue;
-            case PieceTypes.King:
-                return kingValue;
-            case PieceTypes.Queen:
-                return queenValue;
+            for (int y = 0; y < 8; y++)
+            {
+                if (gameBoard[x, y].currentPiece != null) Destroy(gameBoard[x, y].currentPiece.gameObject);
+                Destroy(gameBoard[x, y].gameObject);
+            }
         }
 
-        //Default return, should never run
-        return 0;
+        gameBoard = null;
     }
 }

@@ -5,6 +5,8 @@ using UnityEngine;
 public class CanvasManager : MonoBehaviour {
 
     public GameObject menuCanvas;
+    public GameObject winCanvas;
+    public GameObject tieCanvas;
 
     private GameBoardManager boardManager;
 
@@ -14,6 +16,9 @@ public class CanvasManager : MonoBehaviour {
     private void Awake()
     {
         boardManager = GetComponent<GameBoardManager>();
+
+        winCanvas.SetActive(false);
+        tieCanvas.SetActive(false);
     }
 
     /// <summary>
@@ -33,5 +38,22 @@ public class CanvasManager : MonoBehaviour {
     {
         Debug.Log("Custom");
         boardManager.createCustomGame();
+    }
+
+    /// <summary>
+    /// Called when the game ends with one team winning
+    /// </summary>
+    /// <param name="team">Winning team</param>
+    public void showWinCanvas (Team team)
+    {
+        winCanvas.SetActive(true);
+    }
+
+    /// <summary>
+    /// Called when the game ends in a tie
+    /// </summary>
+    public void showTieCanvas ()
+    {
+        tieCanvas.SetActive(true);
     }
 }

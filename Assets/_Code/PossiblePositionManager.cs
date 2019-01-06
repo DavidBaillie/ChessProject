@@ -78,9 +78,91 @@ public class PossiblePositionManager : MonoBehaviour {
                 break;
         }
 
-        //Update local game board and run AI if the Player just went
+        //Update for new Game Board
         tileGameBoard = boardManager.getTileCopyOfGameBoard();
+
+        //Check for Player in CheckMate
+        if (inCheckMate(Team.Player))
+        {
+            boardManager.gameWin(Team.Player);
+            return;
+        }
+
+        //Check for AI in Chackmate
+        if (inCheckMate(Team.AI))
+        {
+            boardManager.gameWin(Team.AI);
+            return;
+        }
+
+        //Check for a stalemate condition
+        if (inStaleMate(Team.Player) || inStaleMate(Team.AI))
+        {
+            boardManager.tieGame();
+            return;
+        }
+
+        //Update local game board and run AI if the Player just went
+
         if (playersTurn == false) AI_Interface.aiShouldRun = true;
+    }
+
+    /// <summary>
+    /// Returns if the player on the specified team is in checkmate.
+    /// </summary>
+    /// <param name="team">Team to check</param>
+    /// <returns>Boolean - IF player in checkmate</returns>
+    private bool inCheckMate (Team team)
+    {
+        //Only run the check if the king is in check
+        if (kingIsInCheck(tileGameBoard, team))
+        {
+            //Check each Tile
+            for (int x = 0; x < 8; x++)
+            {
+                for (int y = 0; y < 8; y++)
+                {
+                    //If the tile has a piece and the piece is on the correc team
+                    if (tileGameBoard[x,y].currentPiece != null && tileGameBoard[x,y].currentPiece.team == team)
+                    {
+                        //Check if the piece has any valid movements, return false if it does
+                        if (getAIPossibleTiles(tileGameBoard[x, y], tileGameBoard).Count > 0)
+                            return false;
+                    }
+                }
+            }
+        }
+
+        //Default return, means no pieces are able to move that will take the King out of check
+        return true;
+    }
+
+    /// <summary>
+    /// Returns if the game is in stalemate
+    /// </summary>
+    /// <returns>Boolean</returns>
+    private bool inStaleMate (Team team)
+    {
+        //Can't be in stalemate if king in check
+        if (kingIsInCheck(tileGameBoard, team)) return false;
+
+        //Check for having no movement options
+        for (int x = 0; x < 8; x++)
+        {
+            for (int y = 0; y < 8; y++)
+            {
+                //If the tile has a piece and the piece is on the correc team
+                if (tileGameBoard[x, y].currentPiece != null && tileGameBoard[x, y].currentPiece.team == team)
+                {
+                    //Check if the piece has any valid movements, return false if it does
+                    if (getAIPossibleTiles(tileGameBoard[x, y], tileGameBoard).Count > 0)
+                        return false;
+                }
+            }
+        }
+
+        //Default return, in stalemate conditions
+        return true;
     }
 
     #region Player Turn

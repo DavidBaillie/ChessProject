@@ -30,7 +30,7 @@ public class GameBoardManager : MonoBehaviour {
 
     private WorldTile[,] gameBoard;
     private PossiblePositionManager positionManager;
-
+    private AIInterfaceManager AIManager;
 
 
     /// <summary>
@@ -39,6 +39,7 @@ public class GameBoardManager : MonoBehaviour {
     private void Awake()
     {
         positionManager = GetComponent<PossiblePositionManager>();
+        AIManager = GetComponent<AIInterfaceManager>();
     }
 
     /// <summary>
@@ -68,6 +69,7 @@ public class GameBoardManager : MonoBehaviour {
         //Create board and add pieces
         createBoard();
         addStandardPieces();
+        AIManager.setAIDepth(Int32.Parse(depthField.text));
 
         //Initialize the PossiblePositionManager to kick off the core game loop
         positionManager.construct(getTileCopyOfGameBoard());
@@ -84,6 +86,8 @@ public class GameBoardManager : MonoBehaviour {
     internal void createCustomGame ()
     {
         createBoard();
+
+        AIManager.setAIDepth(Int32.Parse(depthField.text));
     }
 
 

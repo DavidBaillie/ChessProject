@@ -12,6 +12,8 @@ public class AIInterfaceManager : MonoBehaviour {
     internal volatile bool aiShouldRun;
     internal volatile bool aiFinishedTurn;
 
+    internal volatile int AIDepth;
+
     private GameObject holder;
 
     /// <summary>
@@ -22,7 +24,7 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         
         //Continue running while game active
-        while (false)
+        while (true)
         {
             
             //If it's the AI's turn, spin up an AI and have it decide a turn
@@ -70,6 +72,15 @@ public class AIInterfaceManager : MonoBehaviour {
         t.IsBackground = true;
         t.Start();
 		
+    }
+
+    /// <summary>
+    /// Provides the depth for the AI to check to
+    /// </summary>
+    /// <param name="depth">Depth value AI will use</param>
+    internal void setAIDepth (int depth)
+    {
+        AIDepth = depth;
     }
 
     /// <summary>

@@ -5,7 +5,7 @@ public class Main {
 
 	//Class used to interface with Unity Code
 	private AIInterfaceManager unityInterface;
-	private int depth = 4; //TODO: this is hardcoded right now, but should be user chosen ... user chosen parameter of depth to check against in Min & Max 
+    private int depth;
 
 
 	/// <summary>
@@ -13,13 +13,11 @@ public class Main {
 	/// </summary>
 	/// <param name="unityInterface">Interface Class for Unity</param>
 	public Main(AIInterfaceManager unityInterface){
-        Debug.Log("AI - Started Constructor");
+        depth = unityInterface.AIDepth;
 		this.unityInterface = unityInterface;
 		Tile[,] boardCopy = unityInterface.AC_getCurrentBoard();
 		MovementData bestChoice = searchAlphaBeta(boardCopy); // chooses an action
-        Debug.Log("AI - Finished AI tree");
 		unityInterface.AC_submitChoice(bestChoice);
-        Debug.Log("AI - Completed Constructor");
 	}
 
 	// Methods ------------------------------------------------------------

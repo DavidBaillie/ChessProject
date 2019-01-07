@@ -997,7 +997,7 @@ Transform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 173545474}
   m_LocalRotation: {x: 0.40821788, y: -0.23456968, z: 0.10938163, w: 0.8754261}
-  m_LocalPosition: {x: 0, y: 13.01, z: 0}
+  m_LocalPosition: {x: 0, y: 13, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
@@ -3882,12 +3882,12 @@ MonoBehaviour:
   Knight: {fileID: 1943414466066380, guid: 45e10aea18beb495d9489aed31b95270, type: 2}
   King: {fileID: 1504342444523766, guid: de5f4888ca0e74c1ba4b9224759334f4, type: 2}
   Queen: {fileID: 1097155551969228, guid: 55516a6c49a924127a8b226bfbb3cf46, type: 2}
-  pawnValue: 1
-  rookValue: 2
-  bishopValue: 3
-  knightValue: 4
-  kingValue: 5
-  queenValue: 6
+  pawnValue: 2
+  rookValue: 5
+  bishopValue: 4
+  knightValue: 5
+  kingValue: 10
+  queenValue: 8
 --- !u!1001 &1583269408
 Prefab:
   m_ObjectHideFlags: 0

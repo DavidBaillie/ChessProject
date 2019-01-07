@@ -10,6 +10,7 @@ public class CanvasManager : MonoBehaviour {
     public Text winText;
     public GameObject tieCanvas;
     public GameObject pawnPromotionCanvas;
+    public GameObject customCeationCanvas;
 
     private GameBoardManager boardManager;
 
@@ -24,6 +25,7 @@ public class CanvasManager : MonoBehaviour {
         winCanvas.SetActive(false);
         tieCanvas.SetActive(false);
         pawnPromotionCanvas.SetActive(false);
+        customCeationCanvas.SetActive(false);
     }
 
     /// <summary>
@@ -43,6 +45,8 @@ public class CanvasManager : MonoBehaviour {
     {
         Debug.Log("Custom");
         boardManager.createCustomGame();
+        menuCanvas.SetActive(false);
+        customCeationCanvas.SetActive(true);
     }
 
     /// <summary>

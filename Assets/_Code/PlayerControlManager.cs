@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -141,9 +142,17 @@ public class PlayerControlManager : MonoBehaviour {
     /// <returns>If a match exists</returns>
     private bool movementsContainTile (List<MovementData> movements, WorldTile tile)
     {
-        foreach (MovementData move in movements)
+        try
         {
-            if (move.endTile.x == tile.x && move.endTile.y == tile.y) return true;
+            foreach (MovementData move in movements)
+            {
+                if (move.endTile.x == tile.x && move.endTile.y == tile.y) return true;
+            }
+        } catch (NullReferenceException e)
+        {
+            selected = null;
+            current = null;
+            return false;
         }
 
         return false;

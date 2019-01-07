@@ -11,10 +11,14 @@ public class AIInterfaceManager : MonoBehaviour {
 
     internal volatile bool aiShouldRun;
     internal volatile bool aiFinishedTurn;
+    internal volatile bool running;
+
 
     internal volatile int AIDepth;
 
     private GameObject holder;
+
+    internal Thread t;
 
     /// <summary>
     /// Main thread that spins up and controls AI with interactions back to main Unity Systems
@@ -24,16 +28,13 @@ public class AIInterfaceManager : MonoBehaviour {
     {
         
         //Continue running while game active
-        while (false)
+        while (parent.running)
         {
-            
             //If it's the AI's turn, spin up an AI and have it decide a turn
             if (parent.aiShouldRun)
             {
-                Debug.Log("Starting AI");
                 //Spin up AI
                 Main m = new Main(parent);
-                Debug.Log("AI Finished");
                 parent.aiShouldRun = false;
             }
             
@@ -54,11 +55,22 @@ public class AIInterfaceManager : MonoBehaviour {
     }
 
     /// <summary>
+    /// Called when object destoryed
+    /// </summary>
+    private void OnDestroy()
+    {
+        Debug.Log("Destorying!");
+        running = false;
+    }
+
+    /// <summary>
     /// Called by the PossiblePositionManager once world generation has completed.
     /// Method handles starting up and running the AI
     /// </summary>
     internal void initialize (PossiblePositionManager positionManager)
     {
+        running = true;
+
         //Save positions manager
         this.positionManager = positionManager;
         boardManager = GetComponent<GameBoardManager>();
@@ -68,7 +80,7 @@ public class AIInterfaceManager : MonoBehaviour {
 
         //Spin up thread
 		
-        Thread t = new Thread(() => main_AI_Thread(this));
+        t = new Thread(() => main_AI_Thread(this));
         t.IsBackground = true;
         t.Start();
 		

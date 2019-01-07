@@ -456,6 +456,8 @@ public class GameBoardManager : MonoBehaviour {
                 Debug.Log("Unexpected parameter provided when upgrading Pawn to a new Type! (" + newType + ")");
                 break;
         }
+
+        Debug.Log("Finished upgrading unit");
     }
 
 
@@ -484,6 +486,7 @@ public class GameBoardManager : MonoBehaviour {
     /// </summary>
     private void destroyBoard ()
     {
+        AIManager.running = false;
         for (int x = 0; x < 8; x++)
         {
             for (int y = 0; y < 8; y++)

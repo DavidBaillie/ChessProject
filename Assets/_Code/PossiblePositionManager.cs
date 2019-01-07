@@ -40,7 +40,7 @@ public class PossiblePositionManager : MonoBehaviour {
     internal void moveToTile(MovementData data)
     {
         //Update who's turn it is
-        //playersTurn = !playersTurn;
+        playersTurn = !playersTurn;
 
         //Save last move
         lastMove = data;
@@ -84,14 +84,14 @@ public class PossiblePositionManager : MonoBehaviour {
         //Check for Player in CheckMate
         if (inCheckMate(Team.Player))
         {
-            boardManager.gameWin(Team.Player);
+            boardManager.gameWin(Team.AI);
             return;
         }
 
         //Check for AI in Chackmate
         if (inCheckMate(Team.AI))
         {
-            boardManager.gameWin(Team.AI);
+            boardManager.gameWin(Team.Player);
             return;
         }
 

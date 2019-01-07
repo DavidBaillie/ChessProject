@@ -7,6 +7,7 @@ public class CanvasManager : MonoBehaviour {
 
     public GameObject menuCanvas;
     public GameObject winCanvas;
+    public Text winText;
     public GameObject tieCanvas;
     public GameObject pawnPromotionCanvas;
 
@@ -54,7 +55,7 @@ public class CanvasManager : MonoBehaviour {
 
         if (team == Team.AI)
         {
-            winCanvas.transform.GetChild(1).GetComponent<Text>().text = "You Lose!";
+            winText.text = "You Lose!";
         }
     }
 

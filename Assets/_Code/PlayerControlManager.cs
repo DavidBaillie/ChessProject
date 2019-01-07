@@ -53,7 +53,7 @@ public class PlayerControlManager : MonoBehaviour {
     private void registerPlayerAction (WorldTile c)
     {
         current = c;
-		if (current == null) return;
+		if (current == null) { Debug.Log("Selected null WorldTile"); return; }
 
         //Case where nothing is currently selected
         if (selected == null)
@@ -123,9 +123,14 @@ public class PlayerControlManager : MonoBehaviour {
                 break;
         }
 
+        int y = selected.y;
+
+        selected = null;
+        current = null;
+
         //Apply the promotion
         positionsManager.moveToTile(new MovementData(
-            new Tile(new Piece(PieceTypes.Pawn, Team.Player), 7, selected.y), true, new Piece(newType, Team.Player)));
+            new Tile(new Piece(PieceTypes.Pawn, Team.Player), 7, y), true, new Piece(newType, Team.Player)));
     }
 
     /// <summary>

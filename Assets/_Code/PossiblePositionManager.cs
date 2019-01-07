@@ -40,7 +40,7 @@ public class PossiblePositionManager : MonoBehaviour {
     internal void moveToTile(MovementData data)
     {
         //Update who's turn it is
-        playersTurn = !playersTurn;
+        //playersTurn = !playersTurn;
 
         //Save last move
         lastMove = data;
@@ -853,6 +853,63 @@ public class PossiblePositionManager : MonoBehaviour {
                 else
                     options.Add(new MovementData(tile, tileDataArray[x, y - 1], StateChange.StandardTaken));
             }
+
+        //Check for Castling
+        if (x == 0 && y == 4)   //Check for player king at start point
+        {
+            Debug.Log("King in correct place");
+            //Player check on left side
+            if (tileDataArray[x,3].currentPiece == null && tileDataArray[x,2].currentPiece == null  //Make sure all tiles between are empty
+                && tileDataArray[x,1].currentPiece == null                                          //
+                && tileDataArray[x,0].currentPiece != null && tileDataArray[x, 0].currentPiece.type == PieceTypes.Rook) //Check for rook at start
+            {
+                Debug.Log("Large side valid");
+                //Move pieces to check for king in Check
+                Tile[,] arr = movePiece(tileDataArray[x,4], tileDataArray[x,1], tileDataArray);
+                arr = movePiece(arr[x, 0], arr[x, 2], arr);
+                if (kingIsInCheck(arr, Team.Player) == false)
+                    options.Add(new MovementData(tileDataArray[x, 4], tileDataArray[x, 1], StateChange.Castling, tileDataArray[x, 0], tileDataArray[x, 2]));
+            }
+
+            //Player check on right side
+            if (tileDataArray[x, 5].currentPiece == null && tileDataArray[x, 6].currentPiece == null                        //Make sure all tiles between are empty
+                && tileDataArray[x, 7].currentPiece != null && tileDataArray[x, 7].currentPiece.type == PieceTypes.Rook)    //Check for rook at start
+            {
+                Debug.Log("Small side valid");
+                //Move pieces to check for king in Check
+                Tile[,] arr = movePiece(tileDataArray[x, 4], tileDataArray[x, 6], tileDataArray);
+                arr = movePiece(arr[x, 7], arr[x, 5], arr);
+                Debug.Log(kingIsInCheck(arr, Team.Player) == false);
+                if (kingIsInCheck(arr, Team.Player) == false)
+                    options.Add(new MovementData(tileDataArray[x, 4], tileDataArray[x, 6], StateChange.Castling, tileDataArray[x, 7], tileDataArray[x, 5]));
+            }
+        }
+
+        if (x == 7 && y == 4)   //Check for AI king at start point
+        {
+            //AI check on left side
+            if (tileDataArray[x, 3].currentPiece == null && tileDataArray[x, 2].currentPiece == null  //Make sure all tiles between are empty
+                && tileDataArray[x, 1].currentPiece == null                                          //
+                && tileDataArray[x, 0].currentPiece != null && tileDataArray[x, 0].currentPiece.type == PieceTypes.Rook) //Check for rook at start
+            {
+                //Move pieces to check for king in Check
+                Tile[,] arr = movePiece(tileDataArray[x, 4], tileDataArray[x, 1], tileDataArray);
+                arr = movePiece(arr[x, 0], arr[x, 2], arr);
+                if (kingIsInCheck(arr, Team.Player) == false)
+                    options.Add(new MovementData(tileDataArray[x, 4], tileDataArray[x, 1], StateChange.Castling, tileDataArray[x, 0], tileDataArray[x, 2]));
+            }
+
+            //AI check on right side
+            if (tileDataArray[x, 5].currentPiece == null && tileDataArray[x, 6].currentPiece == null                        //Make sure all tiles between are empty
+                && tileDataArray[x, 7].currentPiece != null && tileDataArray[x, 7].currentPiece.type == PieceTypes.Rook)    //Check for rook at start
+            {
+                //Move pieces to check for king in Check
+                Tile[,] arr = movePiece(tileDataArray[x, 4], tileDataArray[x, 6], tileDataArray);
+                arr = movePiece(arr[x, 7], arr[x, 5], arr);
+                if (kingIsInCheck(arr, Team.Player) == false)
+                    options.Add(new MovementData(tileDataArray[x, 4], tileDataArray[x, 6], StateChange.Castling, tileDataArray[x, 7], tileDataArray[x, 5]));
+            }
+        }
 
         return options;
     }

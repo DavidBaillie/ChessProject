@@ -114,8 +114,9 @@ public class PossiblePositionManager : MonoBehaviour {
     /// <returns>Boolean - IF player in checkmate</returns>
     private bool inCheckMate (Team team)
     {
+        Tile[,] board = boardManager.getTileCopyOfGameBoard();
         //Only run the check if the king is in check
-        if (kingIsInCheck(tileGameBoard, team))
+        if (kingIsInCheck(board, team))
         {
             //Check each Tile
             for (int x = 0; x < 8; x++)
@@ -123,14 +124,19 @@ public class PossiblePositionManager : MonoBehaviour {
                 for (int y = 0; y < 8; y++)
                 {
                     //If the tile has a piece and the piece is on the correc team
-                    if (tileGameBoard[x,y].currentPiece != null && tileGameBoard[x,y].currentPiece.team == team)
+                    if (board[x,y].currentPiece != null && board[x,y].currentPiece.team == team)
                     {
                         //Check if the piece has any valid movements, return false if it does
-                        if (getAIPossibleTiles(tileGameBoard[x, y], tileGameBoard).Count > 0)
+                        int c = getAIPossibleTiles(board[x, y], board).Count;
+                        if (c > 0)
                             return false;
                     }
                 }
             }
+        }
+        else
+        {
+            return false;
         }
 
         //Default return, means no pieces are able to move that will take the King out of check

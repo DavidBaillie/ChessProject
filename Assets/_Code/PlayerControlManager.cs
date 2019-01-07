@@ -5,6 +5,7 @@ using UnityEngine;
 public class PlayerControlManager : MonoBehaviour {
 
     private PossiblePositionManager positionsManager;
+    private CanvasManager canvasManager;
 
     private WorldTile selected;
     private WorldTile current;
@@ -16,6 +17,7 @@ public class PlayerControlManager : MonoBehaviour {
     private void Awake()
     {
         positionsManager = GetComponent<PossiblePositionManager>();
+        canvasManager = GetComponent<CanvasManager>();
     }
 
     /// <summary>
@@ -31,6 +33,16 @@ public class PlayerControlManager : MonoBehaviour {
             {
                 registerPlayerAction(hit.collider.gameObject.GetComponent<WorldTile>());
             }
+        }
+
+        //Check for pawn promotion state
+        if (selected != null && selected.currentPiece.type == PieceTypes.Pawn && selected.x == 7)
+        {
+            canvasManager.togglePawnPromotionDisplay(true);
+        }
+        else
+        {
+            canvasManager.togglePawnPromotionDisplay(false);
         }
     }
 
@@ -84,6 +96,36 @@ public class PlayerControlManager : MonoBehaviour {
                 selected = null;
             }
         }
+    }
+
+    /// <summary>
+    /// Called by the pawnPromotionCanvas buttons when the player has chosen to promote a pawn
+    /// </summary>
+    /// <param name="newType">New PieceType the pawn will become</param>
+    public void submitPromotion (int n)
+    {
+        PieceTypes newType = PieceTypes.Queen;
+
+        //Determine what the selected piece is
+        switch (n)
+        {
+            case 0:
+                newType = PieceTypes.Rook;
+                break;
+            case 1:
+                newType = PieceTypes.Knight;
+                break;
+            case 2:
+                newType = PieceTypes.Bishop;
+                break;
+            case 3:
+                newType = PieceTypes.Queen;
+                break;
+        }
+
+        //Apply the promotion
+        positionsManager.moveToTile(new MovementData(
+            new Tile(new Piece(PieceTypes.Pawn, Team.Player), 7, selected.y), true, new Piece(newType, Team.Player)));
     }
 
     /// <summary>

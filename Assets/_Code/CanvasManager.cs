@@ -8,6 +8,7 @@ public class CanvasManager : MonoBehaviour {
     public GameObject menuCanvas;
     public GameObject winCanvas;
     public GameObject tieCanvas;
+    public GameObject pawnPromotionCanvas;
 
     private GameBoardManager boardManager;
 
@@ -18,8 +19,10 @@ public class CanvasManager : MonoBehaviour {
     {
         boardManager = GetComponent<GameBoardManager>();
 
+        menuCanvas.SetActive(true);
         winCanvas.SetActive(false);
         tieCanvas.SetActive(false);
+        pawnPromotionCanvas.SetActive(false);
     }
 
     /// <summary>
@@ -51,7 +54,7 @@ public class CanvasManager : MonoBehaviour {
 
         if (team == Team.AI)
         {
-            winCanvas.transform.GetChild(0).GetComponent<Text>().text = "You Lose!";
+            winCanvas.transform.GetChild(1).GetComponent<Text>().text = "You Lose!";
         }
     }
 
@@ -61,5 +64,14 @@ public class CanvasManager : MonoBehaviour {
     public void showTieCanvas ()
     {
         tieCanvas.SetActive(true);
+    }
+
+    /// <summary>
+    /// Toggles if the Pawn Promotion Display is active
+    /// </summary>
+    /// <param name="activity">New state for toggle</param>
+    internal void togglePawnPromotionDisplay(bool activity)
+    {
+        pawnPromotionCanvas.SetActive(activity);
     }
 }

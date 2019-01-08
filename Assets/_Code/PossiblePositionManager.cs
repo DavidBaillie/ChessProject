@@ -93,6 +93,7 @@ public class PossiblePositionManager : MonoBehaviour {
 
             ////Upgrading
             case StateChange.Upgrade:
+                Debug.Log("Calling Piece Upgrade");
                 boardManager.upgradeUnit(data.startTile.x, data.startTile.y, data.newPiece.type);
                 break;
         }

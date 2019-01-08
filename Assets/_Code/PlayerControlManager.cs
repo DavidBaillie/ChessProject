@@ -62,7 +62,6 @@ public class PlayerControlManager : MonoBehaviour {
             //If the player has selected one of thier own pieces
             if (current.currentPiece != null && current.currentPiece.team == Team.Player)
             {
-                Debug.Log("Player is making a new piece selection --> " + current.currentPiece.type.ToString());
                 //Save selection and get valid movement options
                 selected = current;
                 returnedMovements = positionsManager.getPlayerPossibleTiles(current.x, current.y, current.currentPiece.type);
@@ -74,7 +73,6 @@ public class PlayerControlManager : MonoBehaviour {
         //Case where there is already a Piece selected and a valid movement was chosen
         if (movementsContainTile(returnedMovements, current))
         {
-            Debug.Log("Player made a valid movement choice, moving piece");
             positionsManager.moveToTile(getMovementToTile(returnedMovements, current));
             selected = null;
             current = null;
@@ -85,7 +83,6 @@ public class PlayerControlManager : MonoBehaviour {
             //Case where the player clicked on another one of their own pieces
             if (current.currentPiece.team == Team.Player)
             {
-                Debug.Log("Player has changed their selection --> " + current.currentPiece.type.ToString());
                 //Change selection to new piece
                 selected = current;
                 returnedMovements = positionsManager.getPlayerPossibleTiles(current.x, current.y, current.currentPiece.type);
@@ -93,7 +90,6 @@ public class PlayerControlManager : MonoBehaviour {
             //Otherwise clear selection
             else
             {
-                Debug.Log("Player selected an invalid tile, resetting selection");
                 selected = null;
             }
         }

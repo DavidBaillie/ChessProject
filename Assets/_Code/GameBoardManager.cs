@@ -430,6 +430,7 @@ public class GameBoardManager : MonoBehaviour {
 
         switch (newType)
         {
+            //Create a Queen
             case PieceTypes.Queen:
                 GameObject newQueen = Instantiate(Queen);
                 if (team == Team.AI) newQueen.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
@@ -441,6 +442,8 @@ public class GameBoardManager : MonoBehaviour {
 
                 gameBoard[x, y].currentPiece = queenPiece;
                 break;
+
+            //Create a Knight
             case PieceTypes.Knight:
                 GameObject newKnight = Instantiate(Knight);
                 if (team == Team.AI) newKnight.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
@@ -452,6 +455,33 @@ public class GameBoardManager : MonoBehaviour {
 
                 gameBoard[x, y].currentPiece = knightPiece;
                 break;
+
+            //Ceate a Rook
+            case PieceTypes.Rook:
+                GameObject newRook = Instantiate(Rook);
+                if (team == Team.AI) newRook.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
+                newRook.transform.localScale = new Vector3(pieceScale, pieceScale, pieceScale);
+                newRook.transform.position = new Vector3(x, 0.5f, y);
+
+                WorldPiece RookPiece = newRook.AddComponent<WorldPiece>();
+                RookPiece.instanciate(newRook.transform.position, PieceTypes.Rook, team, movementSpeed);
+
+                gameBoard[x, y].currentPiece = RookPiece;
+                break;
+
+            //Create a Bishop
+            case PieceTypes.Bishop:
+                GameObject newBishop = Instantiate(Bishop);
+                if (team == Team.AI) newBishop.GetComponent<Renderer>().material.SetColor("_Color", Color.black);
+                newBishop.transform.localScale = new Vector3(pieceScale, pieceScale, pieceScale);
+                newBishop.transform.position = new Vector3(x, 0.5f, y);
+
+                WorldPiece bishopPiece = newBishop.AddComponent<WorldPiece>();
+                bishopPiece.instanciate(newBishop.transform.position, PieceTypes.Bishop, team, movementSpeed);
+
+                gameBoard[x, y].currentPiece = bishopPiece;
+                break;
+
             default:
                 Debug.Log("Unexpected parameter provided when upgrading Pawn to a new Type! (" + newType + ")");
                 break;

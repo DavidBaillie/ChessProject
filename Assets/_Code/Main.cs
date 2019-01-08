@@ -25,14 +25,14 @@ public class Main {
 	private MovementData searchAlphaBeta(Tile[,] boardCopy) {
 		List<Choice> allChoices = new List<Choice>(); // create a list of moves with their associated values
 													  // for each piece on the board
-		foreach (Tile tiles in piecesList(boardCopy)) { //method call returns a list of all pieces
-			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
-			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+		
+		foreach (Tile atile in piecesList(boardCopy)) { //method call returns a list of all pieces
+			if (atile.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again. Basically only iterate over AI team pieces
+			List<MovementData> options = unityInterface.AC_getMovementOptions(atile, boardCopy); //make a list of all movements possible for this piece
             int count = 0;
 			foreach (MovementData move in options) { // for each movement option
-                if (tiles.x == 6 && tiles.y == 3) count++;
                 Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(move, boardCopy); // create a new board with movement of piece
-				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1, tiles.x == 6 && tiles.y == 3); // starting cutoff 1 layer down (due to making 1 decision)
+				int value = maxValue(newBoard, int.MinValue, int.MaxValue, 1, atile.x == 6 && atile.y == 3); // starting cutoff 1 layer down (due to making 1 decision)
                 Choice choice = new Choice(value, move); // create wrapper class holding score and decision
 				allChoices.Add(choice); // add wrapper class to a list
             }
@@ -57,60 +57,20 @@ public class Main {
 		return index; //TODO: there is an issue here. If the list is empty, this method will return index 0, which will yield an array out of bounds. Is an empty list even possible as this means there are no more AI Pieces (which means no king which is after checkmate)?
 	}
 
-	private void printArray (Tile[,] arr) {
-		string output = "";
-		for (int x = 0; x < 8; x++) {
-			output += "\n";
-			for (int y = 0; y < 8; y++) {
-				if (arr[x, y].currentPiece == null) output += " -";
-				else 
-					switch(arr[x,y].currentPiece.type) {
-						case PieceTypes.Pawn:
-							output += " p";
-							break;
-						case PieceTypes.Rook:
-							output += " r";
-							break;
-						case PieceTypes.Knight:
-							output += " k";
-							break;
-						case PieceTypes.Bishop:
-							output += " b";
-							break;
-						case PieceTypes.Queen:
-							output += " q";
-							break;
-						case PieceTypes.King:
-							output += " D";
-							break;
-					}
-			}
-		}
-
-		Debug.Log(output);
-	}
-
 	// This method returns the max value of the next state
 	private int maxValue(Tile[,] boardCopy, int alpha, int beta, int cutOff, bool enableDebug){
 
-        if (cutOff == depth)
-        {
-            return unityInterface.AC_getScoreOfBoard(boardCopy);
-        } //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
+        if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy);
+        //TODO:What if we hit the bottom of the tree (i.e. there are no more objects to search/checkmate, or even check) and we have not reached cutoff yet. HOWEVER, that is likely where we return a value and evaluate pruning (return current val at end)
 
         int currentValue = int.MinValue; // Setting current value to negative inifinity
 
-
-        List<Tile> pieces = piecesList(boardCopy);
-		foreach (Tile tiles in pieces) {
+		foreach (Tile tiles in piecesList(boardCopy)) {
 			if (tiles.currentPiece.team == Team.Player) continue; // if player team, skip and iterate again
-
-
+			
 			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
 
-			int c = 0;
 			foreach (MovementData choice in options) {
-				if (cutOff == 3) c++;
 				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board after piece move
 
 				int nextVal = minValue(newBoard, alpha, beta, cutOff + 1, enableDebug);
@@ -155,8 +115,7 @@ public class Main {
 
                 if (nextVal < currentValue) currentValue = nextVal;
 
-                if (nextVal <= alpha)
-                {
+                if (nextVal <= alpha) {
                     return currentValue; // pruning
                 }
 
@@ -168,16 +127,22 @@ public class Main {
 
 	// turning everything into a new 1D list to make it easier to read from
 	private List<Tile> piecesList(Tile[,] arr) {
-		List<Tile> betterList = new List<Tile>();
+		List<Tile> highValList = new List<Tile>();
+		List<Tile> lowValList = new List<Tile>();
 		for (int i = 0; i < 8; i++) {
 			for (int k = 0; k < 8; k++) {
 				if (arr[i,k].currentPiece != null) {
-					betterList.Add(arr[i, k]);
-				} //else //Debug.Log("No Add to list");
+					if(arr[i,k].currentPiece.type == PieceTypes.Pawn) {
+						lowValList.Add(arr[i, k]);
+					}
+					else {
+						highValList.Add(arr[i, k]);
+					}
+				} 
 			}
 		}
-		//Debug.Log("size of better list = " + betterList.Count);
-		return betterList;
+		highValList.AddRange(lowValList);
+		return highValList;
 	}
 
 	

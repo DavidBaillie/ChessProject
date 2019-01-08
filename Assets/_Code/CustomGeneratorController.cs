@@ -22,7 +22,6 @@ public class CustomGeneratorController : MonoBehaviour {
         boardManager = GetComponent<GameBoardManager>();
         controlManager = GetComponent<PlayerControlManager>();
         canvasManager = GetComponent<CanvasManager>();
-        controlManager.enabled = false;
     }
 
     /// <summary>

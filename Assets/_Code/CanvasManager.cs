@@ -33,6 +33,7 @@ public class CanvasManager : MonoBehaviour {
     /// </summary>
     public void standardGame ()
     {
+		GetComponent<CustomGeneratorController>().enabled = false;
         Debug.Log("Standard");
         menuCanvas.SetActive(false);
         boardManager.createStandardGame();
@@ -43,6 +44,7 @@ public class CanvasManager : MonoBehaviour {
     /// </summary>
     public void customScenario ()
     {
+		GetComponent<PlayerControlManager>().enabled = false;
         Debug.Log("Custom");
         boardManager.createCustomGame();
         menuCanvas.SetActive(false);

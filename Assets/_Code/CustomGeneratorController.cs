@@ -38,6 +38,14 @@ public class CustomGeneratorController : MonoBehaviour {
                 WorldTile selected = hit.collider.gameObject.GetComponent<WorldTile>();
                 if (selected != null)
                 {
+                    //Remove any piece on Tile
+                    if (selected.currentPiece != null)
+                    {
+                        Destroy(selected.currentPiece.gameObject);
+                        selected.currentPiece = null;
+                    }
+
+                    //Add new piece to tile
                     switch (selectedType)
                     {
                         //ROOK
@@ -133,6 +141,24 @@ public class CustomGeneratorController : MonoBehaviour {
                             //Assign WorldPiece to Tile
                             selected.currentPiece = pPawnPiece;
                             break;
+                    }
+                }
+            }
+        }
+
+        //Mouse right click event
+        if (Input.GetMouseButtonDown(1))
+        {
+            RaycastHit hit;
+            if (Physics.Raycast(Camera.main.ScreenPointToRay(Input.mousePosition), out hit))
+            {
+                WorldTile selected = hit.collider.gameObject.GetComponent<WorldTile>();
+                if (selected != null)
+                {
+                    if (selected.currentPiece != null)
+                    {
+                        Destroy(selected.currentPiece.gameObject);
+                        selected.currentPiece = null;
                     }
                 }
             }

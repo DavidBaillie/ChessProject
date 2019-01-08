@@ -50,7 +50,7 @@ public class GameBoardManager : MonoBehaviour {
     private void Update()
     {
         int ignore = 0;
-        if (Int32.TryParse(depthField.text, out ignore))
+        if (Int32.TryParse(depthField.text, out ignore) && Int32.Parse(depthField.text) > 0)
         {
             standardButton.interactable = true;
             customButton.interactable = true;

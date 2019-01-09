@@ -16,11 +16,16 @@ public class Main {
 	/// </summary>
 	/// <param name="unityInterface">Interface Class for Unity</param>
 	public Main(AIInterfaceManager unityInterface){
-		this.unityInterface = unityInterface; // setting unity interface class to reference
-		depth = unityInterface.AIDepth; // setting user-chosen depth for search
-		Tile[,] boardCopy = unityInterface.AC_getCurrentBoard(); // obtaining copy of board
-		MovementData bestChoice = searchAlphaBeta(boardCopy); // chooses an action
-		unityInterface.AC_submitChoice(bestChoice); // submits the choice (action)
+		// setting unity interface class to reference
+		this.unityInterface = unityInterface;
+		// setting user-chosen depth for search
+		depth = unityInterface.AIDepth;
+		// obtaining copy of board
+		Tile[,] boardCopy = unityInterface.AC_getCurrentBoard();
+		// choose an action
+		MovementData bestChoice = searchAlphaBeta(boardCopy);
+		// submits the choice
+		unityInterface.AC_submitChoice(bestChoice); 
 	}
 
 	// Methods ------------------------------------------------------------
@@ -132,39 +137,46 @@ public class Main {
 	/// <param name="cutOff">current depth to check as an int</param>
 	/// <returns>lowest max value integer as provided by maxValue method</returns>
 	private int minValue(Tile[,] boardCopy, int alpha, int beta, int cutOff) {
-
-        if (cutOff == depth)
-        {
-            return unityInterface.AC_getScoreOfBoard(boardCopy);
-        }
-
-        int currentValue = int.MaxValue; // Setting current value to positive inifinity
-
-        foreach (Tile tiles in piecesList(boardCopy)) {
-			if (tiles.currentPiece.team == Team.AI) continue; // if AI team, skip and iterate again
-
-            List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy); //make a list of all movements possible for this piece
+		// if we have reached the desired depth, return this state's score
+		if (cutOff == depth) return unityInterface.AC_getScoreOfBoard(boardCopy);
+		// Setting current value to positive inifinity
+		int currentValue = int.MaxValue;
+		// method call in foreach loop returns a list of all pieces
+		foreach (Tile tiles in piecesList(boardCopy)) {
+			// if AI team, skip and iterate again. Basically only iterate over player team pieces
+			if (tiles.currentPiece.team == Team.AI) continue;
+			// make a list of all movements possible for this piece
+			List<MovementData> options = unityInterface.AC_getMovementOptions(tiles, boardCopy);
+			// foreach movement option
 			foreach (MovementData choice in options) {
-				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy); // creating a new board
-
-                int nextVal = maxValue(newBoard, alpha, beta, cutOff+1);
-
-                if (nextVal < currentValue) currentValue = nextVal;
-
-                if (nextVal <= alpha) {
-                    return currentValue; // pruning
-                }
-
-                if (nextVal < beta) beta = nextVal;
+				// creating a new board after piece move
+				Tile[,] newBoard = unityInterface.AC_getBoardAfterMovement(choice, boardCopy);
+				// get the next stat's maximum value 1 level deeper than current
+				int nextVal = maxValue(newBoard, alpha, beta, cutOff+1);
+				// if this max value is less than the current value we have, update current value
+				if (nextVal < currentValue) currentValue = nextVal;
+				// if this max value is less than or equal to the alpha parameter (max), prune. Do not explore.
+				if (nextVal <= alpha) return currentValue;
+				// if this max value is less than the beta parameter, update beta.
+				if (nextVal < beta) beta = nextVal;
 			}
 		}
-        return currentValue;
+		// if all else fails or we reach the end of all iterating, return the current value
+		return currentValue;
 	}
 
-	// turning everything into a new 1D list to make it easier to read from
+	/// <summary>
+	/// This method is responsible for turning a board (2D tile array) into a new 1D list to 
+	/// make it easier to read from
+	/// </summary>
+	/// <param name="arr">current board layout (2D tile array)</param>
+	/// <returns></returns>
 	private List<Tile> piecesList(Tile[,] arr) {
+		// list to hold higher valued pieces
 		List<Tile> highValList = new List<Tile>();
+		// list to hold pawns (low valued pieces)
 		List<Tile> lowValList = new List<Tile>();
+		// iterating over everything and adding pawns to low list, rest to high list
 		for (int i = 0; i < 8; i++) {
 			for (int k = 0; k < 8; k++) {
 				if (arr[i,k].currentPiece != null) {
@@ -177,7 +189,9 @@ public class Main {
 				} 
 			}
 		}
+		// append low list to end of high list (yields pseudo sorted list)
 		highValList.AddRange(lowValList);
+		// return the list
 		return highValList;
 	}
 
@@ -185,6 +199,10 @@ public class Main {
 	
 }
 
+/// <summary>
+/// This is a wrapper class meant to hold the best a single movement data and its 
+/// associated score value.
+/// </summary>
 class Choice {
 	internal int bestMoveValue;
 	internal MovementData bestMove;

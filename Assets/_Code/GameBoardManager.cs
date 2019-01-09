@@ -390,8 +390,6 @@ public class GameBoardManager : MonoBehaviour {
     {
         //Don't try accessing things if there's no WorldPiece
         if (gameBoard[x, y].currentPiece == null) return;
-
-        //TODO - Move unit off board instead of destroying it
         Destroy(gameBoard[x, y].currentPiece.gameObject, 0.5f);
         gameBoard[x, y].currentPiece = null;
     }

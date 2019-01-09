@@ -167,7 +167,9 @@ public class Main {
 
 	/// <summary>
 	/// This method is responsible for turning a board (2D tile array) into a new 1D list to 
-	/// make it easier to read from
+	/// make it easier to read from. The list is smaller as it only contains the tiles with
+	/// pieces currently on them and the list is pseudo-sorted with the higher valued pieces
+	/// being placed first and the pawns at the end
 	/// </summary>
 	/// <param name="arr">current board layout (2D tile array)</param>
 	/// <returns></returns>
